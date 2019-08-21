@@ -23,33 +23,32 @@ function loadBuffer(file, onload, onerror, onprogress) {
   fr.readAsArrayBuffer(file);
 }
 let commonProps = {
-  color: 'yellow', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
-  bottom: '40rpx', //优先取这个bottom top必须要有一个
-  top: '40rpx',
-  right: '40rpx', //优先取这个right left必须要有一个
-  left: '40rpx',
-  width: '100rpx',
-  height: '100rpx', //高度,没有的话就自适应
-  rotate: '',
-  borderRadius: '50rpx',
-  borderWidth: '10rpx',
-  borderColor: 'yellow',
+  color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
+  bottom: 40, //优先取这个bottom top必须要有一个
+  top: 40,
+  right: 40, //优先取这个right left必须要有一个
+  left: 40,
+  width: 10,
+  height: 20, //高度,没有的话就自适应
+  rotate: 0,
+  borderRadius: 50,
+  borderWidth: 10,
+  borderColor: '#000000',
   align: ['center', 'left', 'right'], //view 的对齐方式
-  shadow: '10rpx 10rpx 5rpx #888888' //阴影
+  shadow: '10 10 5 #888888' //阴影
 };
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.handlerInputChange = this.handlerInputChange.bind(this);
-    this.onChange = this.onChange.bind(this);
+    this.addShape = this.addShape.bind(this);
     this.state = {
-      clipPartNum: 3, //gif分的段数 默认3段
       optionArr: [
         {
           type: 'canvas',
           css: {
-            width: '654rpx',
-            height: '1000rpx',
+            width: '654',
+            height: '1000',
             background: '#eee'
           }
         },
@@ -58,18 +57,17 @@ class App extends React.Component {
           name: '文字',
           css: {
             ...commonProps,
+            text: '我是来测试的',
             background: '#538e60', //文字区域背景色
-            fontSize: '16rpx',
+            fontSize: '30',
             fontWeight: 'bold', //文字加粗 可以不写
             maxLines: '', //最大行数
-            lineHeight: '20rpx',
+            lineHeight: '20',
             textStyle: ['fill', 'stroke'], //fill： 填充样式，stroke：镂空样式
             fontFamily: '',
             textAlign: ['center', 'left', 'right'], //文字的对齐方式，分为 left, center, right
-            padding: '10rpx',
-            width: '100rpx',
-            height: '100rpx', //高度,没有的话就自适应
-            textDecoration: ['overline', 'underline', 'line-through'] //overline underline line-through 可组合
+            padding: '10',
+            textDecoration: ['none', 'overline', 'underline', 'line-through'] //overline underline line-through 可组合
           }
         },
         {
@@ -96,13 +94,15 @@ class App extends React.Component {
         }
       ] //初始化数据,initData
     };
-    this.bgColorArr = ['rgba(0,0,0,0.3)', 'rgb(4, 250, 37, 0.3)', 'rgb(41, 4, 250, .3)', 'rgb(41, 4, 10, .3)'];
     this.canvas_sprite = ''; //渲图片的canvas对象
-    this.rects = [];
-    this.texts = [];
+    this.shapes = {
+      text: [],
+      rect: [],
+      image: [],
+      qrcode: []
+    };
     this.height = 300; //固定死
     this.width = 0; //通过实际宽高比计算出来的
-    this.framesLength = 0;
   }
 
   componentDidMount() {
@@ -155,7 +155,6 @@ class App extends React.Component {
       });
     });
   }
-  componentWillUnmount() {}
   handlerInputChange(file) {
     let that = this;
     if (/gif$/.test(file.type)) {
@@ -179,17 +178,6 @@ class App extends React.Component {
       alert('"' + file.name + '" not GIF');
     }
   }
-  onChange = e => {
-    //console.log('radio checked', e.target.value);
-    this.setState(
-      {
-        clipPartNum: e.target.value
-      },
-      () => {
-        this.initData();
-      }
-    );
-  };
   buildView(gif, fname, preRender) {
     let canvas_frame = '';
     let context = '';
@@ -230,29 +218,6 @@ class App extends React.Component {
       });
     });
   }
-  //分配每段的帧数
-  handlerClipPartNum() {
-    let { clipPartNum, optionArr } = this.state;
-    let length = this.framesLength;
-    let residue = length % clipPartNum;
-    let average = (length - residue) / clipPartNum; //整除值
-    let optionArrNew = JSON.parse(JSON.stringify(optionArr));
-    for (let index = 0; index < clipPartNum; index++) {
-      if (index === 1) {
-        optionArrNew[index].frames = average + residue;
-      } else {
-        optionArrNew[index].frames = average;
-      }
-    }
-    this.setState(
-      {
-        optionArr: optionArrNew
-      },
-      () => {
-        this.renderFramesInit();
-      }
-    ); //分配完帧数,渲染矩形分割区和文字
-  }
   //增加矩形 文字到各自的段数上
   renderFramesInit() {
     const { optionArr } = this.state;
@@ -284,6 +249,50 @@ class App extends React.Component {
       canvas_sprite.add(text);
       left += item.frames * this.width;
     });
+  }
+  addShape(object) {
+    let { type, css } = object;
+    let Shape;
+    switch (type) {
+      case 'text':
+        let {
+          width,
+          height,
+          text,
+          color,
+          fontSize,
+          left,
+          top,
+          fontWeight,
+          fontFamily,
+          borderColor,
+          backgroundColor
+        } = css;
+        console.log('width',width,
+        height,);
+        let config = {
+          width,
+          height,
+          fill: color,
+          backgroundColor,
+          fontWeight,
+          left, //距离画布左侧的距离，单位是像素
+          top, //距离画布上边的距离
+          fontSize, //文字大小
+          fontFamily,
+          lockUniScaling:true, //只能等比缩放
+          editingBorderColor: 'blue' // 点击文字进入编辑状态时的边框颜色
+          //lockRotation: true
+        };
+        Shape = new fabric.Textbox(text, config);
+        break;
+
+      default:
+        break;
+    }
+
+    this.shapes[type].push(Shape);
+    this.canvas_sprite.add(Shape);
   }
   clearCanvas() {
     this.rects.forEach(function(item, i) {
@@ -322,10 +331,14 @@ class App extends React.Component {
               return (
                 <div key={i} className='option-li'>
                   <div className='row'>
-                    <div className='h3'>{item.name} </div>
+                    <div className='h3'>{item.name} </div>{' '}
+                    <div className='btn'>
+                      <Button type='primary' onClick={this.addShape.bind(this, item)}>
+                        添加
+                      </Button>
+                    </div>
                   </div>
                   {Object.keys(item.css).map((item2, i2) => {
-                    console.log('item.css.item2', item2);
                     return (
                       <div className='row' key={i2}>
                         <div className='h3'>{item2} </div>
@@ -334,13 +347,13 @@ class App extends React.Component {
                         )}
                         {_.isArray(item.css[item2]) && (
                           <Select
-                            defaultValue={item2[0]}
+                            defaultValue={item.css[item2][0]}
                             style={{ width: 120 }}
                             onChange={i => {
                               console.log('i', i);
                             }}
                           >
-                            {Object.keys(item2).map((item3, i3) => {
+                            {item.css[item2].map((item3, i3) => {
                               return (
                                 <Option value={item3} key={i3}>
                                   {item3}
