@@ -1,0 +1,77 @@
+@import '~antd/dist/antd.css';
+.App {
+  text-align: center;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  line-height: 25px;
+}
+
+th {
+  background-color: #eee;
+}
+
+td,
+th {
+  text-align: center;
+}
+
+td:first-child {
+  text-align: left;
+}
+
+input {
+  min-width: 300px;
+  border: 1px solid #999;
+  border-radius: 2px;
+  line-height: 25px;
+}
+#main {
+  display: flex;
+  justify-content: flex-start;
+  #merge {
+    background: rgba(0, 0, 0, 0.1);
+    width: 100%;
+  }
+  .box {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 10px;
+    div {
+      margin-left: 10px;
+    }
+  }
+  .option {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 10px;
+    .option-li {
+      border: 1px solid #eee;
+      padding: 25px;
+      margin-left: 20px;
+    }
+    .row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin-top: 10px;
+      .h3 {
+        color: #333;
+        font-size: 16px;
+        width: 100px;
+        margin-right: 10px;
+      }
+      .ant-btn {
+        margin-right: 10px;
+      }
+      .ant-input {
+        width: 200px;
+        min-width: auto;
+      }
+    }
+  }
+}

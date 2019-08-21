@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Chinese Rice",
+    "origin": "China",
+    "continent": "Asia"
+  },
+  {
+    "name": "Amala",
+    "origin": "Nigeria",
+    "continent": "Africa"
+  },
+  {
+    "name": "Banku",
+    "origin": "Ghana",
+    "continent": "Africa"
+  },
+  {
+    "name": "Pão de Queijo",
+    "origin": "Brazil",
+    "continent": "South America"
+  },
+  {
+    "name": "Ewa Agoyin",
+    "origin": "Nigeria",
+    "continent": "Africa"
+  }
+]
