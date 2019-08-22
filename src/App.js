@@ -134,7 +134,7 @@ class App extends React.Component {
           textAlign: align,
           shadow,
           splitByGrapheme: true, //文字换行
-          zIndex:2
+          zIndex: 2
         };
         let textBox = new fabric.Textbox(text, config);
         if (hasBorder === 1) {
@@ -143,13 +143,23 @@ class App extends React.Component {
             height,
             left, //距离画布左侧的距离，单位是像素
             top,
-            borderRadius,
+            rx:borderRadius,
+            //ry:borderRadius,
             strokeWidth: borderWidth,
             stroke: borderColor,
-            fill: 'rgba(0,0,0,0)'
+            fill: 'rgba(0,0,0,0)',
+            selectable: false
           });
           this.canvas_sprite.add(Rect);
           Shape = textBox;
+          Shape.on('moving', function(e) {
+            console.log('eeeee',e);
+            Rect.set({
+              left: e.target.left,
+              top: e.target.top
+            });
+            that.canvas_sprite.renderAll();
+          });
           /* Shape = new fabric.Group([Rect, textBox], {
             left,
             top,

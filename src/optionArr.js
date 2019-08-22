@@ -8,7 +8,7 @@ let commonProps = {
   width: 100,
   height: 200, //高度,没有的话就自适应
   rotate: 0,
-  borderRadius: 50,
+  borderRadius: 10,
   borderWidth: 2,
   borderColor: '#000000',
   align: ['center', 'left', 'right'], //view 的对齐方式
