@@ -1,99 +1,32 @@
 import React from 'react';
 import fabric from 'fabric';
 import _ from 'lodash';
+import optionArr from './optionArr';
 import './App.scss';
-import { Upload, Button, Icon, Radio, Input, message, Select } from 'antd';
+import { Upload, Button, Icon, Input, message, Select } from 'antd';
 //import axios from 'axios';
 const { Option } = Select;
+const { Dragger } = Upload;
 fabric = fabric.fabric;
 message.config({
   maxCount: 1
 });
-function loadBuffer(file, onload, onerror, onprogress) {
-  var fr;
-  fr = new FileReader();
-  fr.onload = function() {
-    onload(this.result);
-  };
-  fr.onerror = function() {
-    if (onerror) {
-      onerror(this.error);
-    }
-  };
-  fr.readAsArrayBuffer(file);
-}
-let commonProps = {
-  color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
-  bottom: 40, //优先取这个bottom top必须要有一个
-  top: 40,
-  right: 40, //优先取这个right left必须要有一个
-  left: 40,
-  width: 10,
-  height: 20, //高度,没有的话就自适应
-  rotate: 0,
-  borderRadius: 50,
-  borderWidth: 10,
-  borderColor: '#000000',
-  align: ['center', 'left', 'right'], //view 的对齐方式
-  shadow: '10 10 5 #888888' //阴影
-};
+
+//得到当前默认信息
+let newOptionArr = _.cloneDeep(optionArr);
+newOptionArr[1].css.textStyle = newOptionArr[1].css.textStyle[0];
+newOptionArr[1].css.textAlign = newOptionArr[1].css.textAlign[0];
+newOptionArr[1].css.textDecoration = newOptionArr[1].css.textDecoration[0];
+newOptionArr[1].css.hasBorder = newOptionArr[1].css.hasBorder[0];
+newOptionArr[3].css.mode = newOptionArr[3].css.mode[0];
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.handlerInputChange = this.handlerInputChange.bind(this);
     this.addShape = this.addShape.bind(this);
-    this.state = {
-      optionArr: [
-        {
-          type: 'canvas',
-          css: {
-            width: '654',
-            height: '1000',
-            background: '#eee'
-          }
-        },
-        {
-          type: 'text',
-          name: '文字',
-          css: {
-            ...commonProps,
-            text: '我是来测试的',
-            background: '#538e60', //文字区域背景色
-            fontSize: '30',
-            fontWeight: 'bold', //文字加粗 可以不写
-            maxLines: '', //最大行数
-            lineHeight: '20',
-            textStyle: ['fill', 'stroke'], //fill： 填充样式，stroke：镂空样式
-            fontFamily: '',
-            textAlign: ['center', 'left', 'right'], //文字的对齐方式，分为 left, center, right
-            padding: '10',
-            textDecoration: ['none', 'overline', 'underline', 'line-through'] //overline underline line-through 可组合
-          }
-        },
-        {
-          type: 'rect',
-          name: '矩形',
-          css: {
-            ...commonProps
-          }
-        },
-        {
-          type: 'image',
-          name: '图片',
-          css: {
-            ...commonProps,
-            mode: ['aspectFill', 'scaleToFill', 'aspectFill']
-          }
-        },
-        {
-          type: 'qrcode',
-          name: '二维码',
-          css: {
-            ...commonProps
-          }
-        }
-      ] //初始化数据,initData
-    };
+    this.generateCode = this.generateCode.bind(this);
+    this.state = {};
+    this.currentOptionArr = newOptionArr; //当前图像数据集合
+    this.views = []; //所有元素的信息
     this.canvas_sprite = ''; //渲图片的canvas对象
     this.shapes = {
       text: [],
@@ -134,7 +67,7 @@ class App extends React.Component {
           obj.canvas.width - obj.getBoundingRect().width + obj.left - obj.getBoundingRect().left
         );
       }
-      let { top, left, width, height } = e.target;
+      /* let { top, left, width, height } = e.target;
       let { optionArr } = that.state;
       let optionArrIndex = optionArr.findIndex(function(item) {
         return item.text === e.target.text;
@@ -152,147 +85,119 @@ class App extends React.Component {
       };
       that.setState({
         optionArr: optionArrNew
-      });
+      }); */
     });
+    this.addShape(1)
   }
-  handlerInputChange(file) {
-    let that = this;
-    if (/gif$/.test(file.type)) {
-      loadBuffer(
-        file,
-        function(buf) {
-          var gif;
-          gif = new window.Gif();
-          gif.onparse = function() {
-            setTimeout(function() {
-              that.buildView(gif, file.name, true);
-            }, 20);
-          };
-          gif.parse(buf);
-        },
-        function(e) {
-          alert(e);
-        }
-      );
-    } else {
-      alert('"' + file.name + '" not GIF');
-    }
-  }
-  buildView(gif, fname, preRender) {
-    let canvas_frame = '';
-    let context = '';
-    let frames = '';
-    let canvas_sprite = this.canvas_sprite;
-    let that = this;
-    canvas_frame = document.createElement('canvas');
-    canvas_frame.width = gif.header.width;
-    canvas_frame.height = gif.header.height;
-    context = canvas_frame.getContext('2d');
-    frames = gif.createFrameImages(context, preRender, !preRender);
-    canvas_sprite.clear();
-    frames.forEach(function(frame, i) {
-      let canvas_frame;
-      canvas_frame = document.createElement('canvas');
-      canvas_frame.width = frame.image.width;
-      canvas_frame.height = frame.image.height;
-      canvas_frame.getContext('2d').putImageData(frame.image, 0, 0);
-      new fabric.Image.fromURL(canvas_frame.toDataURL(), function(img) {
-        let width = img.getWidth() * (300 / img.getHeight());
-        that.width = width;
-        img.set({ selectable: false, fill: '#000000', width: width, height: 300 });
-        img.left = img.getWidth() * i;
-        canvas_sprite.setHeight(img.getHeight());
-        canvas_sprite.setWidth(img.getWidth() * (i + 1)); //画布大小固定成800
-        canvas_sprite.add(img);
-        //加线进来
-        let Line = new fabric.Line([img.getWidth() * i, 0, img.getWidth() * i, img.getHeight()], {
-          selectable: false,
-          fill: '#000000',
-          stroke: 'rgba(0,0,0,0.8)' //笔触颜色
-        });
-        canvas_sprite.add(Line);
-        canvas_sprite.renderAll();
-
-        that.framesLength = frames.length; //图片总帧数
-        if (i === frames.length - 1) that.handlerClipPartNum(); //加载为异步,必须在图片加载完成
-      });
-    });
-  }
-  //增加矩形 文字到各自的段数上
-  renderFramesInit() {
-    const { optionArr } = this.state;
-    let rects = this.rects;
-    let texts = this.texts;
-    let canvas_sprite = this.canvas_sprite;
-    let left = 0;
-    optionArr.forEach((item, i) => {
-      let rect = new fabric.Rect({
-        left: left, //距离画布左侧的距离，单位是像素
-        top: 0, //距离画布上边的距离
-        fill: this.bgColorArr[i], //填充的颜色
-        width: item.frames * this.width, //方形的宽度
-        height: this.height, //方形的高度
-        selectable: false
-      });
-      rects[i] = rect;
-      canvas_sprite.add(rect);
-
-      let text = new fabric.Text(item.text, {
-        left: left, //距离画布左侧的距离，单位是像素
-        top: 0, //距离画布上边的距离
-        fontSize: item.fontSize, //文字大小
-        lockRotation: true,
-        fill: item.fontColor,
-        index: i
-      });
-      texts[i] = text;
-      canvas_sprite.add(text);
-      left += item.frames * this.width;
-    });
-  }
-  addShape(object) {
-    let { type, css } = object;
+  async addShape(index) {
+    const currentOptionArr = this.currentOptionArr;
+    let { type, css } = currentOptionArr[index];
+    let {
+      width,
+      height,
+      text,
+      color,
+      fontSize,
+      left,
+      top,
+      fontWeight,
+      fontFamily,
+      padding,
+      textDecoration,
+      borderRadius,
+      borderWidth,
+      borderColor,
+      background,
+      rotate,
+      hasBorder,
+      align,
+      shadow,
+      mode
+    } = css;
     let Shape;
     switch (type) {
       case 'text':
-        let {
-          width,
-          height,
-          text,
-          color,
-          fontSize,
-          left,
-          top,
-          fontWeight,
-          fontFamily,
-          borderColor,
-          backgroundColor
-        } = css;
-        console.log('width',width,
-        height,);
         let config = {
           width,
           height,
           fill: color,
-          backgroundColor,
+          backgroundColor: background,
           fontWeight,
           left, //距离画布左侧的距离，单位是像素
           top, //距离画布上边的距离
           fontSize, //文字大小
           fontFamily,
-          lockUniScaling:true, //只能等比缩放
-          editingBorderColor: 'blue' // 点击文字进入编辑状态时的边框颜色
-          //lockRotation: true
+          padding,
+          [textDecoration]: true,
+          lockUniScaling: true, //只能等比缩放
+          textAlign:align,
+          shadow,
+          splitByGrapheme: true, //文字换行
         };
-        Shape = new fabric.Textbox(text, config);
+        let textBox = new fabric.Textbox(text, config);
+        if (hasBorder === 1) {
+          let Rect = new fabric.Rect({
+            width,
+            height,
+            borderRadius,
+            borderWidth,
+            borderColor
+          });
+          Shape = new fabric.Group([Rect, textBox], {
+            left,
+            top,
+            angle: rotate
+          });
+        } else {
+          Shape = textBox;
+        }
         break;
-
+      case 'rect':
+        Shape = new fabric.Rect({
+          width,
+          height,
+          left,
+          top,
+          borderRadius,
+          borderWidth,
+          borderColor,
+          backgroundColor: background,
+          align,
+          rotate,
+          shadow
+        });
+        break;
+      case 'image':
+        Shape = await this.loadImageUrl();
+        Shape.set({
+          width,
+          height,
+          left,
+          top,
+          borderRadius,
+          borderWidth,
+          borderColor,
+          backgroundColor: background,
+          align,
+          rotate,
+          mode,
+          shadow
+        });
+        break;
       default:
         break;
     }
-
     this.shapes[type].push(Shape);
     this.canvas_sprite.add(Shape);
+  }
+  loadImageUrl() {
+    return new Promise(resolve => {
+      fabric.Image.fromURL('https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg', function(
+        oImg
+      ) {
+        resolve(oImg);
+      });
+    });
   }
   clearCanvas() {
     this.rects.forEach(function(item, i) {
@@ -302,14 +207,51 @@ class App extends React.Component {
       item.remove();
     });
   }
+  generateCode() {
+    let shapes = this.shapes;
+    this.views = [];
+    Object.keys(shapes).forEach(item => {
+      shapes[item].forEach((item2, index) => {
+        console.log('shapes[item2]', item2);
+        this.views.push(item2);
+      });
+    });
+  }
   render() {
     let that = this;
     const props = {
+      name: 'file',
+      //multiple: true,
+      //action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
+      onChange(info) {
+        const { status } = info.file;
+        /* if (status !== 'uploading') {
+          console.log(info.file, info.fileList);
+        }
+        if (status === 'done') {
+          console.log('info', info);
+          message.success(`${info.file.name} file uploaded successfully.`);
+        } else if (status === 'error') {
+          message.error(`${info.file.name} file upload failed.`);
+        } */
+      },
       beforeUpload(file) {
-        that.handlerInputChange(file);
+        console.log('file', file);
+        var reads = new FileReader();
+        reads.οnlοad = function(e) {
+          that.result = e.target.result;
+          console.log('this.result', e.target.result);
+          //that.addShape(3);
+        };
+        reads.onerror = function(e) {
+          console.log('this.result', e);
+        };
+
+        reads.readAsDataURL(file);
+        return false;
       }
     };
-    const { optionArr } = this.state;
+    const currentOptionArr = this.currentOptionArr;
     return (
       <div id='main'>
         <div className='slide'>
@@ -317,13 +259,9 @@ class App extends React.Component {
         </div>
         <div className='main-container'>
           <div className='box'>
-            <div>
-              <Upload {...props}>
-                <Button>
-                  <Icon type='upload' /> Click to Upload
-                </Button>
-              </Upload>
-            </div>
+            <Button type='primary' onClick={this.generateCode}>
+              生成代码
+            </Button>
           </div>
           <div className='option'>
             {optionArr.map((item, i) => {
@@ -333,7 +271,7 @@ class App extends React.Component {
                   <div className='row'>
                     <div className='h3'>{item.name} </div>{' '}
                     <div className='btn'>
-                      <Button type='primary' onClick={this.addShape.bind(this, item)}>
+                      <Button type='primary' onClick={this.addShape.bind(this, i)}>
                         添加
                       </Button>
                     </div>
@@ -343,14 +281,20 @@ class App extends React.Component {
                       <div className='row' key={i2}>
                         <div className='h3'>{item2} </div>
                         {!_.isArray(item.css[item2]) && (
-                          <Input placeholder={item.css[item2]} defaultValue={item.css[item2]} value={item.css[item2]} />
+                          <Input
+                            //placeholder={item.css[item2]}
+                            defaultValue={item.css[item2]}
+                            onChange={event => {
+                              currentOptionArr[i].css[item2] = event.target.value;
+                            }}
+                          />
                         )}
                         {_.isArray(item.css[item2]) && (
                           <Select
                             defaultValue={item.css[item2][0]}
                             style={{ width: 120 }}
-                            onChange={i => {
-                              console.log('i', i);
+                            onChange={value => {
+                              currentOptionArr[i].css[item2] = value;
                             }}
                           >
                             {item.css[item2].map((item3, i3) => {
