@@ -130,7 +130,7 @@ class App extends React.Component {
           fontFamily,
           padding,
           [textDecoration]: true,
-          lockUniScaling: true, //只能等比缩放
+          //lockUniScaling: true, //只能等比缩放
           textAlign: align,
           shadow,
           splitByGrapheme: true, //文字换行
@@ -148,9 +148,9 @@ class App extends React.Component {
             stroke: borderColor,
             fill: 'rgba(0,0,0,0)'
           });
-          /* this.canvas_sprite.add(Rect);
-          Shape = textBox; */
-          Shape = new fabric.Group([Rect, textBox], {
+          this.canvas_sprite.add(Rect);
+          Shape = textBox;
+          /* Shape = new fabric.Group([Rect, textBox], {
             left,
             top,
             angle: rotate,
@@ -160,7 +160,7 @@ class App extends React.Component {
               fontSize
             })
             that.canvas_sprite.renderAll();
-          })
+          }) */
         } else {
           Shape = textBox;
         }
