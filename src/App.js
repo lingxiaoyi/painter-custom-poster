@@ -87,9 +87,10 @@ class App extends React.Component {
         optionArr: optionArrNew
       }); */
     });
-    this.addShape(1)
+    this.addShape(1);
   }
   async addShape(index) {
+    const that = this;
     const currentOptionArr = this.currentOptionArr;
     let { type, css } = currentOptionArr[index];
     let {
@@ -121,7 +122,7 @@ class App extends React.Component {
           width,
           height,
           fill: color,
-          backgroundColor: background,
+          //backgroundColor: background,
           fontWeight,
           left, //距离画布左侧的距离，单位是像素
           top, //距离画布上边的距离
@@ -130,24 +131,36 @@ class App extends React.Component {
           padding,
           [textDecoration]: true,
           lockUniScaling: true, //只能等比缩放
-          textAlign:align,
+          textAlign: align,
           shadow,
           splitByGrapheme: true, //文字换行
+          zIndex:2
         };
         let textBox = new fabric.Textbox(text, config);
         if (hasBorder === 1) {
           let Rect = new fabric.Rect({
             width,
             height,
+            left, //距离画布左侧的距离，单位是像素
+            top,
             borderRadius,
-            borderWidth,
-            borderColor
+            strokeWidth: borderWidth,
+            stroke: borderColor,
+            fill: 'rgba(0,0,0,0)'
           });
+          /* this.canvas_sprite.add(Rect);
+          Shape = textBox; */
           Shape = new fabric.Group([Rect, textBox], {
             left,
             top,
-            angle: rotate
+            angle: rotate,
           });
+          Shape.on('scaling', function (e) {
+            textBox.set({
+              fontSize
+            })
+            that.canvas_sprite.renderAll();
+          })
         } else {
           Shape = textBox;
         }

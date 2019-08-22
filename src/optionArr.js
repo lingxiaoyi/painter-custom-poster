@@ -9,7 +9,7 @@ let commonProps = {
   height: 200, //高度,没有的话就自适应
   rotate: 0,
   borderRadius: 50,
-  borderWidth: 10,
+  borderWidth: 2,
   borderColor: '#000000',
   align: ['center', 'left', 'right'], //view 的对齐方式
   shadow: '10 10 5 #888888' //阴影
@@ -28,7 +28,7 @@ export default [
     name: '文字',
     css: {
       ...commonProps,
-      text: '我是来测试的阿发发萨芬撒发',
+      text: '    我是来测试的阿发发萨芬撒发',
       fontSize: '30',
       fontWeight: 'bold', //文字加粗 可以不写
       maxLines: '', //最大行数
@@ -38,7 +38,7 @@ export default [
       textAlign: ['center', 'left', 'right'], //文字的对齐方式，分为 left, center, right
       padding: '10',
       textDecoration: ['none', 'overline', 'underline', 'linethrough'],
-      hasBorder: [0, 1] //overline underline line-through 可组合
+      hasBorder: [1, 1] //overline underline line-through 可组合
     }
   },
   {
