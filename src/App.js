@@ -60,7 +60,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    this.canvas_sprite = new fabric.Canvas('merge');
+    this.canvas_sprite = new fabric.Canvas('merge', this.currentOptionArr[0].css);
     let that = this;
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
@@ -115,7 +115,7 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(1);
+    this.addShape(4);
   }
 
   async addShape(index) {
@@ -181,46 +181,44 @@ class App extends React.Component {
             angle: rotate,
             selectable: false
           });
-          this.canvas_sprite.add(Rect);
-          Shape = textBox;
-          Shape.on('moving', function(e) {
-            console.log('eeeee', e);
-            Rect.set({
-              left: e.target.left,
-              top: e.target.top
-            });
-            that.canvas_sprite.renderAll();
-          });
-          Shape.on('scaling', function(e) {
-            Rect.set({
-              width: e.target.width,
-              height: e.target.height
-            });
-            that.canvas_sprite.renderAll();
-          });
-          Shape.on('rotating', function(e) {
-            Rect.set({
-              angle: e.target.angle,
-              originX: 'left',
-              originY: 'top',
-              width: e.target.width,
-              height: e.target.height,
-              left: e.target.left,
-              top: e.target.top
-            });
-            that.canvas_sprite.renderAll();
-          });
-          /* Shape = new fabric.Group([Rect, textBox], {
+          Shape = new fabric.Group([Rect, textBox], {
             left,
             top,
-            angle: rotate,
+            angle: rotate
           });
-          Shape.on('scaling', function (e) {
+          Shape.on('scaling', function(e) {
+            let obj = this;
+            let width = obj.width;
+            let height = obj.height;
+            let w = obj.width * obj.scaleX;
+            let h = obj.height * obj.scaleY;
+            Rect.set({
+              left: -(w - width / 2),
+              top: -(h - height / 2),
+              height: h,
+              width: w,
+              rx: borderRadius,
+              strokeWidth: borderWidth
+            });
             textBox.set({
-              fontSize
-            })
+              left: -(w - width / 2),
+              top: -(h - height / 2),
+              width,
+              height,
+              fontSize,
+              scaleX: 1,
+              scaleY: 1
+            });
+            obj.set({
+              height: h,
+              width: w,
+              scaleX: 1,
+              scaleY: 1,
+              originX: 'left'
+            });
+
             that.canvas_sprite.renderAll();
-          }) */
+          });
         } else {
           Shape = textBox;
         }
@@ -260,34 +258,37 @@ class App extends React.Component {
         });
         break;
       case 'qrcode':
-        var imgBase64 = jrQrcode.getQrBase64('hello world', {
-          padding: padding, // 二维码四边空白（默认为10px）
-          width: width, // 二维码图片宽度（默认为256px）
-          height: height, // 二维码图片高度（默认为256px）
-          correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
-          reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
-          background: background, // 二维码背景颜色（默认白色）
-          foreground: color // 二维码颜色（默认黑色）
-        });
+        var imgBase64 = jrQrcode.getQrBase64(
+          'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg',
+          {
+            padding: padding / 1, // 二维码四边空白（默认为10px）
+            width: width / 1, // 二维码图片宽度（默认为256px）
+            height: width / 1, // 二维码图片高度（默认为256px）
+            correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
+            reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
+            background: background, // 二维码背景颜色（默认白色）
+            foreground: color // 二维码颜色（默认黑色）
+          }
+        );
         Shape = await this.loadImageUrl(imgBase64);
         Shape.set({
           width,
-          height,
+          height: width,
           left,
           top,
-          borderRadius,
-          borderWidth,
-          borderColor,
-          backgroundColor: background,
+          rx: borderRadius,
+          strokeWidth: borderWidth,
+          stroke: borderColor,
           align,
-          rotate,
+          angle: rotate,
           mode,
-          shadow
+          shadow,
         });
         break;
       default:
         break;
     }
+    this.canvas_sprite.setActiveObject(Shape);
     this.shapes[type].push(Shape);
     this.canvas_sprite.add(Shape);
   }

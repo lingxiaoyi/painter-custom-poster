@@ -1,6 +1,6 @@
 let commonProps = {
   color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
-  background: '#538e60', //文字区域背景色
+  background: '#ffffff', //文字区域背景色
   bottom: 40, //优先取这个bottom top必须要有一个
   top: 100,
   right: 40, //优先取这个right left必须要有一个
@@ -20,7 +20,7 @@ export default [
     css: {
       width: '654',
       height: '1000',
-      background: '#eee'
+      backgroundColor: '#f8f8f8'
     }
   },
   {
@@ -60,7 +60,8 @@ export default [
     type: 'qrcode',
     name: '二维码',
     css: {
-      ...commonProps
+      ...commonProps,
+      padding: '3',
     }
   }
 ];
