@@ -41,6 +41,14 @@ input {
     justify-content: flex-start;
     align-items: center;
     margin-top: 10px;
+    .btns {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .btn {
+      margin-left: 10px;
+    }
     div {
       margin-left: 10px;
     }
@@ -51,8 +59,8 @@ input {
     margin-top: 10px;
     .option-li {
       border: 1px solid #eee;
-      padding: 25px;
-      margin-left: 20px;
+      padding: 20px;
+      margin-left: 10px;
     }
     .row {
       display: flex;
@@ -69,7 +77,7 @@ input {
         margin-right: 10px;
       }
       .ant-input {
-        width: 200px;
+        width: 150px;
         min-width: auto;
       }
     }

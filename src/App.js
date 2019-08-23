@@ -1,17 +1,31 @@
 import React from 'react';
 import fabric from 'fabric';
 import _ from 'lodash';
+import jrQrcode from 'jr-qrcode';
 import optionArr from './optionArr';
 import './App.scss';
-import { Upload, Button, Icon, Input, message, Select } from 'antd';
+import { Button, Input, message, Select } from 'antd';
+import copy from 'copy-to-clipboard';
 //import axios from 'axios';
 const { Option } = Select;
-const { Dragger } = Upload;
 fabric = fabric.fabric;
 message.config({
   maxCount: 1
 });
-
+let QRErrorCorrectLevel = {
+  L: 1,
+  M: 0,
+  Q: 3,
+  H: 2
+};
+let _config = {
+  canvasState: [],
+  currentStateIndex: -1,
+  undoStatus: false,
+  redoStatus: false,
+  undoFinishedStatus: 1,
+  redoFinishedStatus: 1
+};
 //得到当前默认信息
 let newOptionArr = _.cloneDeep(optionArr);
 newOptionArr[1].css.textStyle = newOptionArr[1].css.textStyle[0];
@@ -24,7 +38,14 @@ class App extends React.Component {
     super(props);
     this.addShape = this.addShape.bind(this);
     this.generateCode = this.generateCode.bind(this);
-    this.state = {};
+    this.copyCode = this.copyCode.bind(this);
+    this.viewCode = this.viewCode.bind(this);
+    this.handerUndo = this.handerUndo.bind(this);
+    this.handerRedo = this.handerRedo.bind(this);
+    this.state = {
+      redoButtonStatus: '',
+      undoButtonStatus: ''
+    };
     this.currentOptionArr = newOptionArr; //当前图像数据集合
     this.views = []; //所有元素的信息
     this.canvas_sprite = ''; //渲图片的canvas对象
@@ -87,8 +108,16 @@ class App extends React.Component {
         optionArr: optionArrNew
       }); */
     });
+    this.canvas_sprite.on('object:modified', function() {
+      that.updateCanvasState();
+    });
+
+    this.canvas_sprite.on('object:added', function() {
+      that.updateCanvasState();
+    });
     this.addShape(1);
   }
+
   async addShape(index) {
     const that = this;
     const currentOptionArr = this.currentOptionArr;
@@ -133,6 +162,7 @@ class App extends React.Component {
           //lockUniScaling: true, //只能等比缩放
           textAlign: align,
           shadow,
+          angle: rotate,
           splitByGrapheme: true, //文字换行
           zIndex: 2
         };
@@ -143,18 +173,38 @@ class App extends React.Component {
             height,
             left, //距离画布左侧的距离，单位是像素
             top,
-            rx:borderRadius,
+            rx: borderRadius,
             //ry:borderRadius,
             strokeWidth: borderWidth,
             stroke: borderColor,
             fill: 'rgba(0,0,0,0)',
+            angle: rotate,
             selectable: false
           });
           this.canvas_sprite.add(Rect);
           Shape = textBox;
           Shape.on('moving', function(e) {
-            console.log('eeeee',e);
+            console.log('eeeee', e);
             Rect.set({
+              left: e.target.left,
+              top: e.target.top
+            });
+            that.canvas_sprite.renderAll();
+          });
+          Shape.on('scaling', function(e) {
+            Rect.set({
+              width: e.target.width,
+              height: e.target.height
+            });
+            that.canvas_sprite.renderAll();
+          });
+          Shape.on('rotating', function(e) {
+            Rect.set({
+              angle: e.target.angle,
+              originX: 'left',
+              originY: 'top',
+              width: e.target.width,
+              height: e.target.height,
               left: e.target.left,
               top: e.target.top
             });
@@ -191,7 +241,35 @@ class App extends React.Component {
         });
         break;
       case 'image':
-        Shape = await this.loadImageUrl();
+        Shape = await this.loadImageUrl(
+          'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg'
+        );
+        Shape.set({
+          width,
+          height,
+          left,
+          top,
+          borderRadius,
+          borderWidth,
+          borderColor,
+          backgroundColor: background,
+          align,
+          rotate,
+          mode,
+          shadow
+        });
+        break;
+      case 'qrcode':
+        var imgBase64 = jrQrcode.getQrBase64('hello world', {
+          padding: padding, // 二维码四边空白（默认为10px）
+          width: width, // 二维码图片宽度（默认为256px）
+          height: height, // 二维码图片高度（默认为256px）
+          correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
+          reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
+          background: background, // 二维码背景颜色（默认白色）
+          foreground: color // 二维码颜色（默认黑色）
+        });
+        Shape = await this.loadImageUrl(imgBase64);
         Shape.set({
           width,
           height,
@@ -213,11 +291,9 @@ class App extends React.Component {
     this.shapes[type].push(Shape);
     this.canvas_sprite.add(Shape);
   }
-  loadImageUrl() {
+  loadImageUrl(imgUrl) {
     return new Promise(resolve => {
-      fabric.Image.fromURL('https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg', function(
-        oImg
-      ) {
+      fabric.Image.fromURL(imgUrl, function(oImg) {
         resolve(oImg);
       });
     });
@@ -240,40 +316,109 @@ class App extends React.Component {
       });
     });
   }
-  render() {
+  copyCode() {
+    if (copy('http://baidu.com')) {
+      message.success(`复制成功,请赶快去painter粘贴代码查看效果`, 2);
+    } else {
+      message.error(`复制失败,请重试或者去谷歌浏览器尝试`, 2);
+    }
+  }
+  viewCode() {}
+  updateCanvasState() {
     let that = this;
-    const props = {
-      name: 'file',
-      //multiple: true,
-      //action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
-      onChange(info) {
-        const { status } = info.file;
-        /* if (status !== 'uploading') {
-          console.log(info.file, info.fileList);
-        }
-        if (status === 'done') {
-          console.log('info', info);
-          message.success(`${info.file.name} file uploaded successfully.`);
-        } else if (status === 'error') {
-          message.error(`${info.file.name} file upload failed.`);
-        } */
-      },
-      beforeUpload(file) {
-        console.log('file', file);
-        var reads = new FileReader();
-        reads.οnlοad = function(e) {
-          that.result = e.target.result;
-          console.log('this.result', e.target.result);
-          //that.addShape(3);
-        };
-        reads.onerror = function(e) {
-          console.log('this.result', e);
-        };
-
-        reads.readAsDataURL(file);
-        return false;
+    let canvas_sprite = this.canvas_sprite;
+    if (_config.undoStatus === false && _config.redoStatus === false) {
+      var jsonData = canvas_sprite.toJSON();
+      var canvasAsJson = JSON.stringify(jsonData);
+      if (_config.currentStateIndex < _config.canvasState.length - 1) {
+        var indexToBeInserted = _config.currentStateIndex + 1;
+        _config.canvasState[indexToBeInserted] = canvasAsJson;
+        var numberOfElementsToRetain = indexToBeInserted + 1;
+        _config.canvasState = _config.canvasState.splice(0, numberOfElementsToRetain);
+      } else {
+        _config.canvasState.push(canvasAsJson);
       }
-    };
+      _config.currentStateIndex = _config.canvasState.length - 1;
+      if (_config.currentStateIndex === _config.canvasState.length - 1 && _config.currentStateIndex !== -1) {
+        that.setState({
+          redoButtonStatus: 'disabled'
+        });
+      }
+    }
+  }
+  handerUndo() {
+    let that = this;
+    let canvas_sprite = this.canvas_sprite;
+    if (_config.undoFinishedStatus) {
+      if (_config.currentStateIndex === -1) {
+        _config.undoStatus = false;
+      } else {
+        if (_config.canvasState.length >= 1) {
+          _config.undoFinishedStatus = 0;
+          if (_config.currentStateIndex !== 0) {
+            _config.undoStatus = true;
+            canvas_sprite.loadFromJSON(_config.canvasState[_config.currentStateIndex - 1], function() {
+              //var jsonData = JSON.parse(_config.canvasState[_config.currentStateIndex - 1]);
+              canvas_sprite.renderAll();
+              _config.undoStatus = false;
+              _config.currentStateIndex -= 1;
+              that.setState({
+                undoButtonStatus: ''
+              });
+              if (_config.currentStateIndex !== _config.canvasState.length - 1) {
+                that.setState({
+                  redoButtonStatus: ''
+                });
+              }
+              _config.undoFinishedStatus = 1;
+            });
+          } else if (_config.currentStateIndex === 0) {
+            canvas_sprite.clear();
+            _config.undoFinishedStatus = 1;
+            that.setState({
+              redoButtonStatus: '',
+              undoButtonStatus: 'disabled'
+            });
+            _config.currentStateIndex -= 1;
+          }
+        }
+      }
+    }
+  }
+  handerRedo() {
+    let that = this;
+    let canvas_sprite = this.canvas_sprite;
+    if (_config.redoFinishedStatus) {
+      if (_config.currentStateIndex === _config.canvasState.length - 1 && _config.currentStateIndex !== -1) {
+        that.setState({
+          redoButtonStatus: 'disabled'
+        });
+      } else {
+        if (_config.canvasState.length > _config.currentStateIndex && _config.canvasState.length !== 0) {
+          _config.redoFinishedStatus = 0;
+          _config.redoStatus = true;
+          canvas_sprite.loadFromJSON(_config.canvasState[_config.currentStateIndex + 1], function() {
+            //var jsonData = JSON.parse(_config.canvasState[_config.currentStateIndex + 1]);
+            canvas_sprite.renderAll();
+            _config.redoStatus = false;
+            _config.currentStateIndex += 1;
+            if (_config.currentStateIndex !== -1) {
+              that.setState({
+                undoButtonStatus: ''
+              });
+            }
+            _config.redoFinishedStatus = 1;
+            if (_config.currentStateIndex === _config.canvasState.length - 1 && _config.currentStateIndex !== -1) {
+              that.setState({
+                redoButtonStatus: 'disabled'
+              });
+            }
+          });
+        }
+      }
+    }
+  }
+  render() {
     const currentOptionArr = this.currentOptionArr;
     return (
       <div id='main'>
@@ -282,9 +427,34 @@ class App extends React.Component {
         </div>
         <div className='main-container'>
           <div className='box'>
-            <Button type='primary' onClick={this.generateCode}>
-              生成代码
-            </Button>
+            <div className='btns'>
+              <div className='btn'>
+                <Button type='primary' onClick={this.handerUndo}>
+                  Undo
+                </Button>
+              </div>
+              <div className='btn'>
+                <Button type='primary' onClick={this.handerRedo}>
+                  Redo
+                </Button>
+              </div>
+              <div className='btn'>
+                <Button type='primary' onClick={this.generateCode}>
+                  生成代码
+                </Button>
+              </div>
+              <div className='btn'>
+                <Button type='primary' onClick={this.copyCode}>
+                  复制代码
+                </Button>
+              </div>
+              <div className='btn'>
+                <Button type='primary' onClick={this.viewCode}>
+                  查看代码
+                </Button>
+              </div>
+            </div>
+            <div className='code' />
           </div>
           <div className='option'>
             {optionArr.map((item, i) => {
@@ -292,7 +462,7 @@ class App extends React.Component {
               return (
                 <div key={i} className='option-li'>
                   <div className='row'>
-                    <div className='h3'>{item.name} </div>{' '}
+                    <div className='h3'>{item.name} </div>
                     <div className='btn'>
                       <Button type='primary' onClick={this.addShape.bind(this, i)}>
                         添加
