@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/poster/precache-manifest.d5d0350f18f0f2423ea91a5597868842.js"
+  "/painter-custom-poster/precache-manifest.cfde2f9e6fd3a8a8282f10a6baa03edd.js"
 );
 
 workbox.clientsClaim();
@@ -28,7 +28,7 @@ self.__precacheManifest = [].concat(self.__precacheManifest || []);
 workbox.precaching.suppressWarnings();
 workbox.precaching.precacheAndRoute(self.__precacheManifest, {});
 
-workbox.routing.registerNavigationRoute("/poster/index.html", {
+workbox.routing.registerNavigationRoute("/painter-custom-poster/index.html", {
   
   blacklist: [/^\/_/,/\/[^\/]+\.[^\/]+$/],
 });

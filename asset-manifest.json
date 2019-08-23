@@ -1,15 +1,15 @@
 {
-  "main.css": "/poster/static/css/main.1392ed03.chunk.css",
-  "main.js": "/poster/static/js/main.32cea16e.chunk.js",
-  "main.js.map": "/poster/static/js/main.32cea16e.chunk.js.map",
-  "runtime~main.js": "/poster/static/js/runtime~main.9efddf37.js",
-  "runtime~main.js.map": "/poster/static/js/runtime~main.9efddf37.js.map",
-  "static/css/2.6522b017.chunk.css": "/poster/static/css/2.6522b017.chunk.css",
-  "static/js/2.bd55c37c.chunk.js": "/poster/static/js/2.bd55c37c.chunk.js",
-  "static/js/2.bd55c37c.chunk.js.map": "/poster/static/js/2.bd55c37c.chunk.js.map",
-  "index.html": "/poster/index.html",
-  "precache-manifest.d5d0350f18f0f2423ea91a5597868842.js": "/poster/precache-manifest.d5d0350f18f0f2423ea91a5597868842.js",
-  "service-worker.js": "/poster/service-worker.js",
-  "static/css/2.6522b017.chunk.css.map": "/poster/static/css/2.6522b017.chunk.css.map",
-  "static/css/main.1392ed03.chunk.css.map": "/poster/static/css/main.1392ed03.chunk.css.map"
+  "main.css": "/painter-custom-poster/static/css/main.1392ed03.chunk.css",
+  "main.js": "/painter-custom-poster/static/js/main.12407123.chunk.js",
+  "main.js.map": "/painter-custom-poster/static/js/main.12407123.chunk.js.map",
+  "runtime~main.js": "/painter-custom-poster/static/js/runtime~main.cac4ec46.js",
+  "runtime~main.js.map": "/painter-custom-poster/static/js/runtime~main.cac4ec46.js.map",
+  "static/css/2.6522b017.chunk.css": "/painter-custom-poster/static/css/2.6522b017.chunk.css",
+  "static/js/2.ccc7ef22.chunk.js": "/painter-custom-poster/static/js/2.ccc7ef22.chunk.js",
+  "static/js/2.ccc7ef22.chunk.js.map": "/painter-custom-poster/static/js/2.ccc7ef22.chunk.js.map",
+  "index.html": "/painter-custom-poster/index.html",
+  "precache-manifest.cfde2f9e6fd3a8a8282f10a6baa03edd.js": "/painter-custom-poster/precache-manifest.cfde2f9e6fd3a8a8282f10a6baa03edd.js",
+  "service-worker.js": "/painter-custom-poster/service-worker.js",
+  "static/css/2.6522b017.chunk.css.map": "/painter-custom-poster/static/css/2.6522b017.chunk.css.map",
+  "static/css/main.1392ed03.chunk.css.map": "/painter-custom-poster/static/css/main.1392ed03.chunk.css.map"
 }
