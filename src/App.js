@@ -108,6 +108,13 @@ class App extends React.Component {
         optionArr: optionArrNew
       }); */
     });
+    this.canvas_sprite.on('selection:created', function(e) {
+      var obj = e.target;
+      obj.set({
+        fontSize: 50
+      });
+      console.log('selection:created');
+    });
     this.canvas_sprite.on('object:modified', function() {
       that.updateCanvasState();
     });
@@ -115,7 +122,7 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(4);
+    this.addShape(1);
   }
 
   async addShape(index) {
@@ -282,7 +289,7 @@ class App extends React.Component {
           align,
           angle: rotate,
           mode,
-          shadow,
+          shadow
         });
         break;
       default:
