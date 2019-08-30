@@ -4,9 +4,8 @@ import _ from 'lodash';
 import jrQrcode from 'jr-qrcode';
 import optionArr from './optionArr';
 import './App.scss';
-import { Button, Input, message, Select } from 'antd';
+import { Button, Input, message, Select, Col, Row, Icon, Drawer, Form } from 'antd';
 import copy from 'copy-to-clipboard';
-//import axios from 'axios';
 const { Option } = Select;
 fabric = fabric.fabric;
 message.config({
@@ -42,9 +41,11 @@ class App extends React.Component {
     this.viewCode = this.viewCode.bind(this);
     this.handerUndo = this.handerUndo.bind(this);
     this.handerRedo = this.handerRedo.bind(this);
+    this.handerEditObject = this.handerEditObject.bind(this);
     this.state = {
       redoButtonStatus: '',
-      undoButtonStatus: ''
+      undoButtonStatus: '',
+      activeObjectOptions: {} //当前编辑对象的配置
     };
     this.currentOptionArr = newOptionArr; //当前图像数据集合
     this.views = []; //所有元素的信息
@@ -108,12 +109,12 @@ class App extends React.Component {
         optionArr: optionArrNew
       }); */
     });
-    this.canvas_sprite.on('selection:created', function(e) {
+    this.canvas_sprite.on('object:selected', function(e) {
       var obj = e.target;
       obj.set({
         fontSize: 50
       });
-      console.log('selection:created');
+      console.log('object:selected');
     });
     this.canvas_sprite.on('object:modified', function() {
       that.updateCanvasState();
@@ -122,7 +123,9 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(1);
+    //this.addShape(1);
+    let canvas = this.canvas_sprite;
+    canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 }));
   }
 
   async addShape(index) {
@@ -426,8 +429,57 @@ class App extends React.Component {
       }
     }
   }
+  handerEditObject() {
+    let canvas_sprite = this.canvas_sprite;
+    this.activeObject = canvas_sprite.getActiveObject();
+    this.showDrawer();
+    console.log('this.activeObject', this.activeObject.type);
+    this.setState({
+      activeObjectOptions: {
+        top: '',
+        left: '',
+        width: '',
+        height: '',
+        rotate: '',
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#000000',
+        color: '',
+        background: '',
+        shadow: '',
+        text: '',
+        fontSize: '30',
+        fontWeight: 'bold',
+        maxLines: '',
+        lineHeight: '20',
+        padding: '10',
+        textDecoration: ['none', 'overline', 'underline', 'linethrough']
+      }
+    });
+  }
+  showDrawer = () => {
+    this.setState({
+      visible: true
+    });
+  };
+
+  onClose = () => {
+    this.setState({
+      visible: false
+    });
+  };
+  handleSubmit = e => {
+    e.preventDefault();
+    this.props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
+  };
   render() {
     const currentOptionArr = this.currentOptionArr;
+    const { getFieldDecorator } = this.props.form;
+    const { visible } = this.state;
     return (
       <div id='main'>
         <div className='slide'>
@@ -444,6 +496,11 @@ class App extends React.Component {
               <div className='btn'>
                 <Button type='primary' onClick={this.handerRedo}>
                   Redo
+                </Button>
+              </div>
+              <div className='btn'>
+                <Button type='primary' onClick={this.handerEditObject}>
+                  编辑对象
                 </Button>
               </div>
               <div className='btn'>
@@ -515,9 +572,116 @@ class App extends React.Component {
             })}
           </div>
         </div>
+        <div className='edit-modal'>
+          <div>
+            <Button type='primary' onClick={this.showDrawer}>
+              <Icon type='plus' /> New account
+            </Button>
+            <Drawer title='编辑对象' width={720} onClose={this.onClose} visible={visible}>
+              <Form layout='vertical' hideRequiredMark onSubmit={this.handleSubmit}>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label='Name'>
+                      {getFieldDecorator('name', {
+                        rules: [{ required: true, message: 'Please enter user name' }]
+                      })(<Input placeholder='Please enter user name' />)}
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label='Url'>
+                      {getFieldDecorator('url', {
+                        rules: [{ required: true, message: 'Please enter url' }]
+                      })(
+                        <Input
+                          style={{ width: '100%' }}
+                          addonBefore='http://'
+                          addonAfter='.com'
+                          placeholder='Please enter url'
+                        />
+                      )}
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label='Owner'>
+                      {getFieldDecorator('owner', {
+                        rules: [{ required: true, message: 'Please select an owner' }]
+                      })(
+                        <Select placeholder='Please select an owner'>
+                          <Option value='xiao'>Xiaoxiao Fu</Option>
+                          <Option value='mao'>Maomao Zhou</Option>
+                        </Select>
+                      )}
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label='Type'>
+                      {getFieldDecorator('type', {
+                        rules: [{ required: true, message: 'Please choose the type' }]
+                      })(
+                        <Select placeholder='Please choose the type'>
+                          <Option value='private'>Private</Option>
+                          <Option value='public'>Public</Option>
+                        </Select>
+                      )}
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label='Approver'>
+                      {getFieldDecorator('approver', {
+                        rules: [{ required: true, message: 'Please choose the approver' }]
+                      })(
+                        <Select placeholder='Please choose the approver'>
+                          <Option value='jack'>Jack Ma</Option>
+                          <Option value='tom'>Tom Liu</Option>
+                        </Select>
+                      )}
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={24}>
+                    <Form.Item label='Description'>
+                      {getFieldDecorator('description', {
+                        rules: [
+                          {
+                            required: true,
+                            message: 'please enter url description'
+                          }
+                        ]
+                      })(<Input.TextArea rows={4} placeholder='please enter url description' />)}
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Form>
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  bottom: 0,
+                  width: '100%',
+                  borderTop: '1px solid #e9e9e9',
+                  padding: '10px 16px',
+                  background: '#fff',
+                  textAlign: 'right'
+                }}
+              >
+                <Button onClick={this.onClose} style={{ marginRight: 8 }}>
+                  Cancel
+                </Button>
+                <Button onClick={this.handleSubmit} type='primary'>
+                  Submit
+                </Button>
+              </div>
+            </Drawer>
+          </div>
+        </div>
       </div>
     );
   }
 }
-
-export default App;
+const WrappedRegistrationForm = Form.create({ name: 'register' })(App);
+export default WrappedRegistrationForm;
