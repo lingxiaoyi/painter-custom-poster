@@ -58,6 +58,7 @@ class App extends React.Component {
     };
     this.height = 300; //固定死
     this.width = 0; //通过实际宽高比计算出来的
+    this.activeObject = null;
   }
 
   componentDidMount() {
@@ -109,12 +110,18 @@ class App extends React.Component {
         optionArr: optionArrNew
       }); */
     });
-    this.canvas_sprite.on('object:selected', function(e) {
+    /* this.canvas_sprite.on('object:selected', function(e) {
       var obj = e.target;
       obj.set({
         fontSize: 50
       });
       console.log('object:selected');
+    }); */
+    this.canvas_sprite.on('mouse:down', function(options) {
+      if (options.target) {
+        this.activeObject = options.target;
+        console.log('有对象被点击咯! ', options.target.type);
+      }
     });
     this.canvas_sprite.on('object:modified', function() {
       that.updateCanvasState();
