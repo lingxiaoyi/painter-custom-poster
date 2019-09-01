@@ -4,8 +4,9 @@ import _ from 'lodash';
 import jrQrcode from 'jr-qrcode';
 import optionArr from './optionArr';
 import './App.scss';
-import { Button, Input, message, Select, Col, Row, Icon, Drawer, Form } from 'antd';
+import { Button, Input, message, Select, Icon, Drawer } from 'antd';
 import copy from 'copy-to-clipboard';
+import keydown, { ALL_PRINTABLE_KEYS } from 'react-keydown'
 const { Option } = Select;
 fabric = fabric.fabric;
 message.config({
@@ -58,7 +59,7 @@ class App extends React.Component {
     };
     this.height = 300; //固定死
     this.width = 0; //通过实际宽高比计算出来的
-    this.activeObject = null;
+    this.activeObject = {};
   }
 
   componentDidMount() {
@@ -110,17 +111,14 @@ class App extends React.Component {
         optionArr: optionArrNew
       }); */
     });
-    /* this.canvas_sprite.on('object:selected', function(e) {
-      var obj = e.target;
-      obj.set({
-        fontSize: 50
-      });
-      console.log('object:selected');
-    }); */
     this.canvas_sprite.on('mouse:down', function(options) {
       if (options.target) {
-        this.activeObject = options.target;
+        that.activeObject = options.target;
         console.log('有对象被点击咯! ', options.target.type);
+        //that.showDrawer()
+        that.activeObject.set({
+          radius: 150
+        });
       }
     });
     this.canvas_sprite.on('object:modified', function() {
@@ -130,11 +128,16 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    //this.addShape(1);
-    let canvas = this.canvas_sprite;
-    canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 }));
-  }
 
+    this.addShape(1);
+    /* let canvas = this.canvas_sprite;
+    canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
+  }
+  @keydown( ALL_PRINTABLE_KEYS )
+  beginEdit(ev) {
+    console.log('ev', ev);
+    // Start editing
+  }
   async addShape(index) {
     const that = this;
     const currentOptionArr = this.currentOptionArr;
@@ -440,7 +443,7 @@ class App extends React.Component {
     let canvas_sprite = this.canvas_sprite;
     this.activeObject = canvas_sprite.getActiveObject();
     this.showDrawer();
-    console.log('this.activeObject', this.activeObject.type);
+    console.log('this.activeObject', this.activeObject);
     this.setState({
       activeObjectOptions: {
         top: '',
@@ -485,7 +488,6 @@ class App extends React.Component {
   };
   render() {
     const currentOptionArr = this.currentOptionArr;
-    const { getFieldDecorator } = this.props.form;
     const { visible } = this.state;
     return (
       <div id='main'>
@@ -547,7 +549,6 @@ class App extends React.Component {
                         <div className='h3'>{item2} </div>
                         {!_.isArray(item.css[item2]) && (
                           <Input
-                            //placeholder={item.css[item2]}
                             defaultValue={item.css[item2]}
                             onChange={event => {
                               currentOptionArr[i].css[item2] = event.target.value;
@@ -584,86 +585,55 @@ class App extends React.Component {
             <Button type='primary' onClick={this.showDrawer}>
               <Icon type='plus' /> New account
             </Button>
-            <Drawer title='编辑对象' width={720} onClose={this.onClose} visible={visible}>
-              <Form layout='vertical' hideRequiredMark onSubmit={this.handleSubmit}>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item label='Name'>
-                      {getFieldDecorator('name', {
-                        rules: [{ required: true, message: 'Please enter user name' }]
-                      })(<Input placeholder='Please enter user name' />)}
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item label='Url'>
-                      {getFieldDecorator('url', {
-                        rules: [{ required: true, message: 'Please enter url' }]
-                      })(
-                        <Input
-                          style={{ width: '100%' }}
-                          addonBefore='http://'
-                          addonAfter='.com'
-                          placeholder='Please enter url'
-                        />
-                      )}
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item label='Owner'>
-                      {getFieldDecorator('owner', {
-                        rules: [{ required: true, message: 'Please select an owner' }]
-                      })(
-                        <Select placeholder='Please select an owner'>
-                          <Option value='xiao'>Xiaoxiao Fu</Option>
-                          <Option value='mao'>Maomao Zhou</Option>
-                        </Select>
-                      )}
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item label='Type'>
-                      {getFieldDecorator('type', {
-                        rules: [{ required: true, message: 'Please choose the type' }]
-                      })(
-                        <Select placeholder='Please choose the type'>
-                          <Option value='private'>Private</Option>
-                          <Option value='public'>Public</Option>
-                        </Select>
-                      )}
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item label='Approver'>
-                      {getFieldDecorator('approver', {
-                        rules: [{ required: true, message: 'Please choose the approver' }]
-                      })(
-                        <Select placeholder='Please choose the approver'>
-                          <Option value='jack'>Jack Ma</Option>
-                          <Option value='tom'>Tom Liu</Option>
-                        </Select>
-                      )}
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Row gutter={16}>
-                  <Col span={24}>
-                    <Form.Item label='Description'>
-                      {getFieldDecorator('description', {
-                        rules: [
-                          {
-                            required: true,
-                            message: 'please enter url description'
-                          }
-                        ]
-                      })(<Input.TextArea rows={4} placeholder='please enter url description' />)}
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </Form>
+            <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible}>
+              {optionArr.map((item, i) => {
+                if (item.type === this.activeObject.type) {
+                  return (
+                    <div key={i} className='option-li'>
+                      <div className='row'>
+                        <div className='h3'>{item.name} </div>
+                        <div className='btn'>
+                          <Button type='primary' onClick={this.addShape.bind(this, i)}>
+                            添加
+                          </Button>
+                        </div>
+                      </div>
+                      {Object.keys(item.css).map((item2, i2) => {
+                        return (
+                          <div className='row' key={i2}>
+                            <div className='h3'>{item2} </div>
+                            {!_.isArray(item.css[item2]) && (
+                              <Input
+                                defaultValue={item.css[item2]}
+                                onChange={event => {
+                                  currentOptionArr[i].css[item2] = event.target.value;
+                                }}
+                              />
+                            )}
+                            {_.isArray(item.css[item2]) && (
+                              <Select
+                                defaultValue={item.css[item2][0]}
+                                style={{ width: 120 }}
+                                onChange={value => {
+                                  currentOptionArr[i].css[item2] = value;
+                                }}
+                              >
+                                {item.css[item2].map((item3, i3) => {
+                                  return (
+                                    <Option value={item3} key={i3}>
+                                      {item3}
+                                    </Option>
+                                  );
+                                })}
+                              </Select>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+              })}
               <div
                 style={{
                   position: 'absolute',
@@ -690,5 +660,4 @@ class App extends React.Component {
     );
   }
 }
-const WrappedRegistrationForm = Form.create({ name: 'register' })(App);
-export default WrappedRegistrationForm;
+export default App;

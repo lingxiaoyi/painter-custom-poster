@@ -53,7 +53,7 @@ export default [
     name: '图片',
     css: {
       ...commonProps,
-      mode: ['aspectFill', 'scaleToFill', 'aspectFill']
+      mode: ['scaleToFill', 'aspectFill']
     }
   },
   {

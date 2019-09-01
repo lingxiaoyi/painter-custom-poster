@@ -13,6 +13,7 @@
     "node-sass": "^4.12.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-keydown": "^1.9.12",
     "react-router": "^5.0.0",
     "react-router-dom": "^5.0.0",
     "react-scripts": "2.1.8"
@@ -36,5 +37,18 @@
   ],
   "devDependencies": {
     "gh-pages": "^2.1.1"
+  },
+  "babel": {
+    "plugins": [
+      [
+        "@babel/plugin-proposal-decorators",
+        {
+          "legacy": true
+        }
+      ]
+    ],
+    "presets": [
+      "react-app"
+    ]
   }
 }
