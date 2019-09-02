@@ -36,19 +36,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.4.4",
     "gh-pages": "^2.1.1"
-  },
-  "babel": {
-    "plugins": [
-      [
-        "@babel/plugin-proposal-decorators",
-        {
-          "legacy": true
-        }
-      ]
-    ],
-    "presets": [
-      "react-app"
-    ]
   }
 }
