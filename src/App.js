@@ -6,7 +6,8 @@ import optionArr from './optionArr';
 import './App.scss';
 import { Button, Input, message, Select, Icon, Drawer } from 'antd';
 import copy from 'copy-to-clipboard';
-import keydown, { ALL_PRINTABLE_KEYS } from 'react-keydown'
+import keydown, { ALL_KEYS } from 'react-keydown';
+const myKeys = [37, 39, 38, 40];
 const { Option } = Select;
 fabric = fabric.fabric;
 message.config({
@@ -133,9 +134,19 @@ class App extends React.Component {
     /* let canvas = this.canvas_sprite;
     canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
   }
-  @keydown( ALL_PRINTABLE_KEYS )
-  beginEdit(ev) {
-    console.log('ev', ev);
+  @keydown(ALL_KEYS)
+  beginEdit(event) {
+    let that = this;
+    if (that.activeObject) {
+      console.log('that.activeObject', that.activeObject);
+      if (event.which === 37) {
+        that.activeObject.set({
+          left: that.activeObject.left - 1
+        });
+        this.canvas_sprite.renderAll();
+      }
+    }
+    console.log('event', event.which);
     // Start editing
   }
   async addShape(index) {
