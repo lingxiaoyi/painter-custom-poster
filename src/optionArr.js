@@ -29,14 +29,14 @@ export default [
     css: {
       ...commonProps,
       text: '    我是来测试的阿发发萨芬撒发',
-      fontSize: '30',
+      fontSize: 30,
       fontWeight: 'bold', //文字加粗 可以不写
       maxLines: '', //最大行数
-      lineHeight: '20',
+      lineHeight: 1,
       textStyle: ['fill', 'stroke'], //fill： 填充样式，stroke：镂空样式
       fontFamily: '',
       textAlign: ['center', 'left', 'right'], //文字的对齐方式，分为 left, center, right
-      padding: '10',
+      padding: 5,
       textDecoration: ['none', 'overline', 'underline', 'linethrough'],
       hasBorder: [1, 1] //overline underline line-through 可组合
     }

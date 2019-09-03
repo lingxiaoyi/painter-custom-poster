@@ -205,8 +205,20 @@ class App extends React.Component {
       hasBorder,
       align,
       shadow,
-      mode
+      mode,
+      lineHeight
     } = css;
+    width = width / 1;
+    height = height / 1;
+    left = left / 1;
+    top = top / 1;
+    rotate = rotate / 1;
+    borderRadius = borderRadius / 1;
+    borderWidth = borderWidth / 1;
+    rotate = rotate / 1;
+    fontSize = fontSize / 1;
+    lineHeight = lineHeight / 1;
+    padding = padding / 1;
     let Shape;
     switch (type) {
       case 'text':
@@ -227,7 +239,8 @@ class App extends React.Component {
           shadow,
           angle: rotate,
           splitByGrapheme: true, //文字换行
-          zIndex: 2
+          zIndex: 2,
+          lineHeight
         };
         let textBox = new fabric.Textbox(text, config);
         if (hasBorder === 1) {
@@ -319,6 +332,11 @@ class App extends React.Component {
           mode,
           shadow
         });
+        if (mode === 'scaleToFill') {
+          console.log('111');
+          Shape.scaleToWidth(width);
+          Shape.scaleToHeight(height);
+        }
         break;
       case 'qrcode':
         var imgBase64 = jrQrcode.getQrBase64(
@@ -358,6 +376,7 @@ class App extends React.Component {
   loadImageUrl(imgUrl) {
     return new Promise(resolve => {
       fabric.Image.fromURL(imgUrl, function(oImg) {
+        console.log('Shape', oImg);
         resolve(oImg);
       });
     });
