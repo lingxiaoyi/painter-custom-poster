@@ -140,11 +140,43 @@ class App extends React.Component {
     if (that.activeObject) {
       console.log('that.activeObject', that.activeObject);
       if (event.which === 37) {
+        //左
+        event.preventDefault();
         that.activeObject.set({
           left: that.activeObject.left - 1
         });
-        this.canvas_sprite.renderAll();
+      } else if (event.which === 39) {
+        //右
+        event.preventDefault();
+        that.activeObject.set({
+          left: that.activeObject.left + 1
+        });
+      } else if (event.which === 40) {
+        //上
+        event.preventDefault();
+        that.activeObject.set({
+          top: that.activeObject.top + 1
+        });
+      } else if (event.which === 38) {
+        //下
+        event.preventDefault();
+        that.activeObject.set({
+          top: that.activeObject.top - 1
+        });
+      } else if (event.which === 90) {
+        //ctrl+z
+        event.preventDefault();
+        that.handerUndo();
+      } else if (event.which === 89) {
+        //ctrl+y
+        event.preventDefault();
+        that.handerRedo();
+      } else if (event.which === 46) {
+        //delete
+        event.preventDefault();
+        this.canvas_sprite.remove(that.activeObject);
       }
+      this.canvas_sprite.renderAll();
     }
     console.log('event', event.which);
     // Start editing
@@ -591,7 +623,7 @@ class App extends React.Component {
             })}
           </div>
         </div>
-        <div className='edit-modal'>
+        {/* <div className='edit-modal'>
           <div>
             <Button type='primary' onClick={this.showDrawer}>
               <Icon type='plus' /> New account
@@ -667,6 +699,7 @@ class App extends React.Component {
             </Drawer>
           </div>
         </div>
+       */}
       </div>
     );
   }
