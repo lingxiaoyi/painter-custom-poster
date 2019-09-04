@@ -7,6 +7,7 @@ import './App.scss';
 import { Button, Input, message, Select, Modal /* , Icon, Drawer  */ } from 'antd';
 import copy from 'copy-to-clipboard';
 import keydown, { ALL_KEYS } from 'react-keydown';
+import ReactMarkdown from 'react-markdown';
 var json = require('format-json');
 const { Option } = Select;
 fabric = fabric.fabric;
@@ -783,7 +784,7 @@ class App extends React.Component {
         </div>
        */}
         <Modal
-          title='Basic Modal'
+          title='view code'
           visible={this.state.visibleCode}
           onCancel={() => {
             this.setState({
@@ -792,7 +793,11 @@ class App extends React.Component {
           }}
           footer={null}
         >
-          <p>{json.plain(this.finallObj)}</p>
+          <ReactMarkdown
+            source={`\`\`\`
+${json.plain(this.finallObj)}
+          `}
+          />
         </Modal>
       </div>
     );

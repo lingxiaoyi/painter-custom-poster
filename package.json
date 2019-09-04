@@ -51,6 +51,7 @@
     "react-dev-utils": "^8.0.0",
     "react-dom": "^16.8.6",
     "react-keydown": "^1.9.12",
+    "react-markdown": "^4.2.2",
     "react-router": "^5.0.0",
     "react-router-dom": "^5.0.0",
     "resolve": "1.10.0",
