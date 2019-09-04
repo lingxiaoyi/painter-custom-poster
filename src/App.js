@@ -316,13 +316,13 @@ class App extends React.Component {
         });
         break;
       case 'image':
-        Shape = await this.loadImageUrl(
-          'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg'
-        );
+        let url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
+        Shape = await this.loadImageUrl(url);
         let ShapeWidth = Shape.width;
         let ShapeHeight = Shape.height;
 
         Shape.set({
+          url,
           left,
           top,
           borderRadius,
@@ -351,20 +351,20 @@ class App extends React.Component {
         }
         break;
       case 'qrcode':
-        var imgBase64 = jrQrcode.getQrBase64(
-          'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg',
-          {
-            padding: padding / 1, // 二维码四边空白（默认为10px）
-            width: width / 1, // 二维码图片宽度（默认为256px）
-            height: width / 1, // 二维码图片高度（默认为256px）
-            correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
-            reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
-            background: background, // 二维码背景颜色（默认白色）
-            foreground: color // 二维码颜色（默认黑色）
-          }
-        );
+        url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
+        let imgBase64 = jrQrcode.getQrBase64(url, {
+          padding: padding / 1, // 二维码四边空白（默认为10px）
+          width: width / 1, // 二维码图片宽度（默认为256px）
+          height: width / 1, // 二维码图片高度（默认为256px）
+          correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
+          reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
+          background: background, // 二维码背景颜色（默认白色）
+          foreground: color // 二维码颜色（默认黑色）
+        });
         Shape = await this.loadImageUrl(imgBase64);
         Shape.set({
+          type: 'qrcode',
+          url,
           width,
           height: width,
           left,
@@ -408,6 +408,7 @@ class App extends React.Component {
     Object.keys(shapes).forEach(item => {
       shapes[item].forEach((item2, index) => {
         console.log('shapes[item2]', item2);
+        let view = {};
         let css = {
           color: `${item2.color}`,
           background: `${item2.background}`,
@@ -424,34 +425,48 @@ class App extends React.Component {
         };
         let type = item2.type;
         if (type === 'image') {
-          css = {
-            ...css,
-            mode: `${item2.mode}`
+          view = {
+            type,
+            url: `${item2.url}`,
+            css: {
+              ...css,
+              mode: `${item2.mode}`
+            }
           };
         } else if (type === 'qrcode') {
-          css = {
-            ...css,
-            padding: `${item2.padding}rpx`
+          view = {
+            type,
+            content: `${item2.url}`,
+            css: {
+              ...css,
+              padding: `${item2.padding}rpx`
+            }
           };
         } else if (type === 'text') {
-          css = {
-            ...css,
-            padding: `${item2.padding}rpx`,
-            text: `${item2.text}`,
-            fontSize: `${item2.fontSize}rpx`,
-            fontWeight: `${item2.fontWeight}`,
-            maxLines: `${item2.maxLines}`,
-            lineHeight: `${item2.lineHeight * item2.fontSize}`,
-            textStyle: `${item2.textStyle}`,
-            textDecoration: `${item2.textDecoration}`,
-            fontFamily: `${item2.fontFamily}`,
-            textAlign: `${item2.textAlign}`
+          view = {
+            type,
+            css: {
+              ...css,
+              padding: `${item2.padding}rpx`,
+              text: `${item2.text}`,
+              fontSize: `${item2.fontSize}rpx`,
+              fontWeight: `${item2.fontWeight}`,
+              maxLines: `${item2.maxLines}`,
+              lineHeight: `${item2.lineHeight * item2.fontSize}`,
+              textStyle: `${item2.textStyle}`,
+              textDecoration: `${item2.textDecoration}`,
+              fontFamily: `${item2.fontFamily}`,
+              textAlign: `${item2.textAlign}`
+            }
+          };
+        } else if (type === 'rect') {
+          view = {
+            type,
+            css
           };
         }
-        this.views.push({
-          type,
-          css
-        });
+
+        this.views.push(view);
       });
     });
     this.finallObj = {
@@ -460,11 +475,20 @@ class App extends React.Component {
       background: canvas_sprite.backgroundColor,
       views: this.views
     };
+    this.miniCode = `
+    export default class LastMayday {
+      palette() {
+        return (
+${json.plain(this.finallObj)}
+        );
+      }
+    }
+    `;
     console.log('finallObj', json.plain(this.finallObj));
   }
   copyCode() {
     this.generateCode();
-    if (copy(json.plain(this.finallObj))) {
+    if (copy(this.miniCode)) {
       message.success(`复制成功,请赶快去painter粘贴代码查看效果`, 2);
     } else {
       message.error(`复制失败,请重试或者去谷歌浏览器尝试`, 2);
@@ -785,17 +809,21 @@ class App extends React.Component {
        */}
         <Modal
           title='view code'
-          visible={this.state.visibleCode}
+          visible={visibleCode}
           onCancel={() => {
             this.setState({
               visibleCode: false
             });
           }}
-          footer={null}
+          footer={[
+            <Button key='submit' type='primary' onClick={this.copyCode}>
+              复制代码
+            </Button>
+          ]}
         >
           <ReactMarkdown
             source={`\`\`\`
-${json.plain(this.finallObj)}
+${this.miniCode}
           `}
           />
         </Modal>
