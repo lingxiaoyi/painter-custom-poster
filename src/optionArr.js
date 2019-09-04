@@ -1,12 +1,10 @@
 let commonProps = {
   color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
   background: '#ffffff', //文字区域背景色
-  bottom: 40, //优先取这个bottom top必须要有一个
   top: 100,
-  right: 40, //优先取这个right left必须要有一个
   left: 100,
-  width: 100,
-  height: 200, //高度,没有的话就自适应
+  width: 500,
+  height: 100, //高度,没有的话就自适应
   rotate: 0,
   borderRadius: 10,
   borderWidth: 2,
@@ -53,7 +51,7 @@ export default [
     name: '图片',
     css: {
       ...commonProps,
-      mode: ['scaleToFill', 'aspectFill']
+      mode: [/* 'default', 'scaleToFill',  */ 'aspectFill']
     }
   },
   {
@@ -61,7 +59,7 @@ export default [
     name: '二维码',
     css: {
       ...commonProps,
-      padding: '3',
+      padding: '3'
     }
   }
 ];

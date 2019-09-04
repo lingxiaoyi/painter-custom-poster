@@ -4,10 +4,10 @@ import _ from 'lodash';
 import jrQrcode from 'jr-qrcode';
 import optionArr from './optionArr';
 import './App.scss';
-import { Button, Input, message, Select, Icon, Drawer } from 'antd';
+import { Button, Input, message, Select, Modal /* , Icon, Drawer  */ } from 'antd';
 import copy from 'copy-to-clipboard';
 import keydown, { ALL_KEYS } from 'react-keydown';
-const myKeys = [37, 39, 38, 40];
+var json = require('format-json');
 const { Option } = Select;
 fabric = fabric.fabric;
 message.config({
@@ -130,7 +130,7 @@ class App extends React.Component {
       that.updateCanvasState();
     });
 
-    this.addShape(1);
+    this.addShape(3);
     /* let canvas = this.canvas_sprite;
     canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
   }
@@ -138,7 +138,7 @@ class App extends React.Component {
   beginEdit(event) {
     let that = this;
     if (that.activeObject) {
-      console.log('that.activeObject', that.activeObject);
+      //console.log('that.activeObject', that.activeObject);
       if (event.which === 37) {
         //左
         event.preventDefault();
@@ -178,7 +178,7 @@ class App extends React.Component {
       }
       this.canvas_sprite.renderAll();
     }
-    console.log('event', event.which);
+    //console.log('event', event.which);
     // Start editing
   }
   async addShape(index) {
@@ -318,9 +318,10 @@ class App extends React.Component {
         Shape = await this.loadImageUrl(
           'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg'
         );
+        let ShapeWidth = Shape.width;
+        let ShapeHeight = Shape.height;
+
         Shape.set({
-          width,
-          height,
           left,
           top,
           borderRadius,
@@ -333,9 +334,19 @@ class App extends React.Component {
           shadow
         });
         if (mode === 'scaleToFill') {
-          console.log('111');
-          Shape.scaleToWidth(width);
-          Shape.scaleToHeight(height);
+          Shape.width = ShapeWidth;
+          Shape.height = ShapeHeight;
+          Shape.set({
+            scaleX: width / ShapeWidth,
+            scaleY: height / ShapeHeight
+          });
+        } else if (mode === 'aspectFill') {
+          /* Shape.scaleToWidth(width);
+          Shape.scaleToHeight(height); */
+          Shape.set({
+            width,
+            height
+          });
         }
         break;
       case 'qrcode':
@@ -391,22 +402,79 @@ class App extends React.Component {
   }
   generateCode() {
     let shapes = this.shapes;
+    let canvas_sprite = this.canvas_sprite;
     this.views = [];
     Object.keys(shapes).forEach(item => {
       shapes[item].forEach((item2, index) => {
         console.log('shapes[item2]', item2);
-        this.views.push(item2);
+        let css = {
+          color: `${item2.color}`,
+          background: `${item2.background}`,
+          width: `${item2.width}rpx`,
+          height: `${item2.height}rpx`,
+          top: `${item2.top}rpx`,
+          left: `${item2.left}rpx`,
+          rotate: `${item2.rotate}`,
+          borderRadius: `${item2.borderRadius}rpx`,
+          borderWidth: `${item2.borderWidth}rpx`,
+          borderColor: `${item2.borderColor}`,
+          align: `${item2.align}`,
+          shadow: `${item2.shadow}`
+        };
+        let type = item2.type;
+        if (type === 'image') {
+          css = {
+            ...css,
+            mode: `${item2.mode}`
+          };
+        } else if (type === 'qrcode') {
+          css = {
+            ...css,
+            padding: `${item2.padding}rpx`
+          };
+        } else if (type === 'text') {
+          css = {
+            ...css,
+            padding: `${item2.padding}rpx`,
+            text: `${item2.text}`,
+            fontSize: `${item2.fontSize}rpx`,
+            fontWeight: `${item2.fontWeight}`,
+            maxLines: `${item2.maxLines}`,
+            lineHeight: `${item2.lineHeight * item2.fontSize}`,
+            textStyle: `${item2.textStyle}`,
+            textDecoration: `${item2.textDecoration}`,
+            fontFamily: `${item2.fontFamily}`,
+            textAlign: `${item2.textAlign}`
+          };
+        }
+        this.views.push({
+          type,
+          css
+        });
       });
     });
+    this.finallObj = {
+      width: `${canvas_sprite.width}rpx`,
+      height: `${canvas_sprite.height}rpx`,
+      background: canvas_sprite.backgroundColor,
+      views: this.views
+    };
+    console.log('finallObj', json.plain(this.finallObj));
   }
   copyCode() {
-    if (copy('http://baidu.com')) {
+    this.generateCode();
+    if (copy(json.plain(this.finallObj))) {
       message.success(`复制成功,请赶快去painter粘贴代码查看效果`, 2);
     } else {
       message.error(`复制失败,请重试或者去谷歌浏览器尝试`, 2);
     }
   }
-  viewCode() {}
+  viewCode() {
+    this.generateCode();
+    this.setState({
+      visibleCode: true
+    });
+  }
   updateCanvasState() {
     let that = this;
     let canvas_sprite = this.canvas_sprite;
@@ -550,7 +618,7 @@ class App extends React.Component {
   };
   render() {
     const currentOptionArr = this.currentOptionArr;
-    const { visible } = this.state;
+    const { visible, visibleCode } = this.state;
     return (
       <div id='main'>
         <div className='slide'>
@@ -572,11 +640,6 @@ class App extends React.Component {
               <div className='btn'>
                 <Button type='primary' onClick={this.handerEditObject}>
                   编辑对象
-                </Button>
-              </div>
-              <div className='btn'>
-                <Button type='primary' onClick={this.generateCode}>
-                  生成代码
                 </Button>
               </div>
               <div className='btn'>
@@ -719,6 +782,18 @@ class App extends React.Component {
           </div>
         </div>
        */}
+        <Modal
+          title='Basic Modal'
+          visible={this.state.visibleCode}
+          onCancel={() => {
+            this.setState({
+              visibleCode: false
+            });
+          }}
+          footer={null}
+        >
+          <p>{json.plain(this.finallObj)}</p>
+        </Modal>
       </div>
     );
   }
