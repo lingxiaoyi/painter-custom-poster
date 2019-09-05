@@ -130,7 +130,6 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-
     this.addShape(3);
     /* let canvas = this.canvas_sprite;
     canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
@@ -306,9 +305,10 @@ class App extends React.Component {
           height,
           left,
           top,
-          borderRadius,
-          borderWidth,
-          borderColor,
+          rx: borderRadius,
+          //ry:borderRadius,
+          strokeWidth: borderWidth,
+          stroke: borderColor,
           backgroundColor: background,
           align,
           rotate,
@@ -325,14 +325,24 @@ class App extends React.Component {
           url,
           left,
           top,
-          borderRadius,
-          borderWidth,
-          borderColor,
+          rx: borderRadius,
+          ry: borderRadius,
+          strokeWidth: borderWidth,
+          stroke: borderColor,
           backgroundColor: background,
           align,
           rotate,
           mode,
-          shadow
+          shadow,
+          padding
+        });
+        Shape.clipPath = new fabric.Rect({
+          width,
+          height,
+          originX: 'center',
+          originY: 'center',
+          rx: borderRadius,
+          rotate
         });
         if (mode === 'scaleToFill') {
           Shape.width = ShapeWidth;
@@ -375,7 +385,8 @@ class App extends React.Component {
           align,
           angle: rotate,
           mode,
-          shadow
+          shadow,
+          lockUniScaling: true //只能等比缩放
         });
         break;
       default:
@@ -412,8 +423,8 @@ class App extends React.Component {
         let css = {
           color: `${item2.color}`,
           background: `${item2.background}`,
-          width: `${item2.width}rpx`,
-          height: `${item2.height}rpx`,
+          width: `${item2.width * item2.scaleX}rpx`,
+          height: `${item2.height * item2.scaleY}rpx`,
           top: `${item2.top}rpx`,
           left: `${item2.left}rpx`,
           rotate: `${item2.rotate}`,
