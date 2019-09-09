@@ -203,10 +203,11 @@ class App extends React.Component {
       background,
       rotate,
       hasBorder,
-      align,
+      //align,
       shadow,
       mode,
-      lineHeight
+      lineHeight,
+      textAlign
     } = css;
     width = width / 1;
     height = height / 1;
@@ -222,82 +223,7 @@ class App extends React.Component {
     let Shape;
     switch (type) {
       case 'text':
-        let config = {
-          width,
-          height,
-          fill: color,
-          //backgroundColor: background,
-          fontWeight,
-          left, //距离画布左侧的距离，单位是像素
-          top, //距离画布上边的距离
-          fontSize, //文字大小
-          fontFamily,
-          padding,
-          [textDecoration]: true,
-          //lockUniScaling: true, //只能等比缩放
-          textAlign: align,
-          shadow,
-          angle: rotate,
-          splitByGrapheme: true, //文字换行
-          zIndex: 2,
-          lineHeight
-        };
-        let textBox = new fabric.Textbox(text, config);
-        if (hasBorder === 1) {
-          let Rect = new fabric.Rect({
-            width,
-            height,
-            left, //距离画布左侧的距离，单位是像素
-            top,
-            rx: borderRadius,
-            //ry:borderRadius,
-            strokeWidth: borderWidth,
-            stroke: borderColor,
-            fill: 'rgba(0,0,0,0)',
-            angle: rotate,
-            selectable: false
-          });
-          Shape = new fabric.Group([Rect, textBox], {
-            left,
-            top,
-            angle: rotate
-          });
-          Shape.on('scaling', function(e) {
-            let obj = this;
-            let width = obj.width;
-            let height = obj.height;
-            let w = obj.width * obj.scaleX;
-            let h = obj.height * obj.scaleY;
-            Rect.set({
-              left: -(w - width / 2),
-              top: -(h - height / 2),
-              height: h,
-              width: w,
-              rx: borderRadius,
-              strokeWidth: borderWidth
-            });
-            textBox.set({
-              left: -(w - width / 2),
-              top: -(h - height / 2),
-              width,
-              height,
-              fontSize,
-              scaleX: 1,
-              scaleY: 1
-            });
-            obj.set({
-              height: h,
-              width: w,
-              scaleX: 1,
-              scaleY: 1,
-              originX: 'left'
-            });
-
-            that.canvas_sprite.renderAll();
-          });
-        } else {
-          Shape = textBox;
-        }
+        
         break;
       case 'rect':
         Shape = new fabric.Rect({
@@ -310,7 +236,7 @@ class App extends React.Component {
           strokeWidth: borderWidth,
           stroke: borderColor,
           backgroundColor: background,
-          align,
+          //align,
           rotate,
           shadow
         });
@@ -330,11 +256,10 @@ class App extends React.Component {
           strokeWidth: borderWidth,
           stroke: borderColor,
           backgroundColor: background,
-          align,
+          //align,
           rotate,
           mode,
-          shadow,
-          padding
+          shadow
         });
         Shape.clipPath = new fabric.Rect({
           width,
@@ -382,7 +307,7 @@ class App extends React.Component {
           rx: borderRadius,
           strokeWidth: borderWidth,
           stroke: borderColor,
-          align,
+          //align,
           angle: rotate,
           mode,
           shadow,
@@ -395,6 +320,124 @@ class App extends React.Component {
     this.canvas_sprite.setActiveObject(Shape);
     this.shapes[type].push(Shape);
     this.canvas_sprite.add(Shape);
+  }
+  addTextObject(index){
+    const that = this;
+    const currentOptionArr = this.currentOptionArr;
+    let { css } = currentOptionArr[index];
+    let {
+      width,
+      height,
+      text,
+      color,
+      fontSize,
+      left,
+      top,
+      fontWeight,
+      fontFamily,
+      padding,
+      textDecoration,
+      borderRadius,
+      borderWidth,
+      borderColor,
+      background,
+      rotate,
+      hasBorder,
+      //align,
+      shadow,
+      mode,
+      lineHeight,
+      textAlign
+    } = css;
+    width = width / 1;
+    height = height / 1;
+    left = left / 1;
+    top = top / 1;
+    rotate = rotate / 1;
+    borderRadius = borderRadius / 1;
+    borderWidth = borderWidth / 1;
+    rotate = rotate / 1;
+    fontSize = fontSize / 1;
+    lineHeight = lineHeight / 1;
+    padding = padding / 1;
+    let Shape;
+    let config = {
+      width,
+      height,
+      fill: color,
+      //backgroundColor: background,
+      fontWeight,
+      left, //距离画布左侧的距离，单位是像素
+      top, //距离画布上边的距离
+      fontSize, //文字大小
+      fontFamily,
+      padding,
+      [textDecoration]: true,
+      //lockUniScaling: true, //只能等比缩放
+      textAlign,
+      shadow,
+      angle: rotate,
+      splitByGrapheme: true, //文字换行
+      zIndex: 2,
+      lineHeight
+    };
+    let textBox = new fabric.Textbox(text, config);
+    if (hasBorder === 1) {
+      let Rect = new fabric.Rect({
+        width,
+        height,
+        left, //距离画布左侧的距离，单位是像素
+        top,
+        rx: borderRadius,
+        //ry:borderRadius,
+        strokeWidth: borderWidth,
+        stroke: borderColor,
+        fill: 'rgba(0,0,0,0)',
+        angle: rotate,
+        selectable: false
+      });
+      Shape = new fabric.Group([Rect, textBox], {
+        left,
+        top,
+        angle: rotate
+      });
+      Shape.on('scaling', function(e) {
+        let obj = this;
+        let width = obj.width;
+        let height = obj.height;
+        let w = obj.width * obj.scaleX;
+        let h = obj.height * obj.scaleY;
+        Rect.set({
+          left: -(w - width / 2),
+          top: -(h - height / 2),
+          height: h,
+          width: w,
+          rx: borderRadius,
+          strokeWidth: borderWidth
+        });
+        textBox.set({
+          left: -(w - width / 2),
+          top: -(h - height / 2),
+          width,
+          height,
+          fontSize,
+          scaleX: 1,
+          scaleY: 1
+        });
+        obj.set({
+          height: h,
+          width: w,
+          scaleX: 1,
+          scaleY: 1,
+          originX: 'left'
+        });
+
+        that.canvas_sprite.renderAll();
+      });
+    } else {
+      Shape = textBox;
+    }
+    return Shape
   }
   loadImageUrl(imgUrl) {
     return new Promise(resolve => {
@@ -428,14 +471,16 @@ class App extends React.Component {
           top: `${item2.top}rpx`,
           left: `${item2.left}rpx`,
           rotate: `${item2.rotate}`,
-          borderRadius: `${item2.borderRadius}rpx`,
-          borderWidth: `${item2.borderWidth}rpx`,
-          borderColor: `${item2.borderColor}`,
+          borderRadius: `${item2.rx}rpx`,
+          borderWidth: `${item2.strokeWidth}rpx`,
+          borderColor: `${item2.stroke}`,
           align: `${item2.align}`,
           shadow: `${item2.shadow}`
         };
         let type = item2.type;
         if (type === 'image') {
+          delete css.color;
+          delete css.background;
           view = {
             type,
             url: `${item2.url}`,
@@ -445,12 +490,14 @@ class App extends React.Component {
             }
           };
         } else if (type === 'qrcode') {
+          delete css.color;
+          delete css.background;
           view = {
             type,
             content: `${item2.url}`,
             css: {
-              ...css,
-              padding: `${item2.padding}rpx`
+              ...css /* ,
+              padding: `${item2.padding}rpx` */
             }
           };
         } else if (type === 'text') {

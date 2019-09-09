@@ -9,7 +9,7 @@ let commonProps = {
   borderRadius: 10,
   borderWidth: 2,
   borderColor: '#000000',
-  align: ['center', 'left', 'right'], //view 的对齐方式
+  //align: ['center', 'left', 'right'], //view 的对齐方式
   shadow: '10 10 5 #888888' //阴影
 };
 export default [
