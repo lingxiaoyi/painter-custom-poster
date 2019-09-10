@@ -26,10 +26,12 @@ export default [
     name: '文字',
     css: {
       ...commonProps,
+      width: 200,
+      height: 50,
       text: '    我是来测试的阿发发萨芬撒发',
       fontSize: 30,
       fontWeight: 'bold', //文字加粗 可以不写
-      maxLines: '', //最大行数
+      maxLines: 2, //最大行数
       lineHeight: 1,
       textStyle: ['fill', 'stroke'], //fill： 填充样式，stroke：镂空样式
       fontFamily: '',

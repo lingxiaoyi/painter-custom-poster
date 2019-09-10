@@ -130,7 +130,7 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(3);
+    this.addShape(1);
     /* let canvas = this.canvas_sprite;
     canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
   }
@@ -182,137 +182,21 @@ class App extends React.Component {
     // Start editing
   }
   async addShape(index) {
-    const that = this;
     const currentOptionArr = this.currentOptionArr;
-    let { type, css } = currentOptionArr[index];
-    let {
-      width,
-      height,
-      text,
-      color,
-      fontSize,
-      left,
-      top,
-      fontWeight,
-      fontFamily,
-      padding,
-      textDecoration,
-      borderRadius,
-      borderWidth,
-      borderColor,
-      background,
-      rotate,
-      hasBorder,
-      //align,
-      shadow,
-      mode,
-      lineHeight,
-      textAlign
-    } = css;
-    width = width / 1;
-    height = height / 1;
-    left = left / 1;
-    top = top / 1;
-    rotate = rotate / 1;
-    borderRadius = borderRadius / 1;
-    borderWidth = borderWidth / 1;
-    rotate = rotate / 1;
-    fontSize = fontSize / 1;
-    lineHeight = lineHeight / 1;
-    padding = padding / 1;
+    let { type } = currentOptionArr[index];
     let Shape;
     switch (type) {
       case 'text':
-        
+        Shape = await this.addTextObject(index);
         break;
       case 'rect':
-        Shape = new fabric.Rect({
-          width,
-          height,
-          left,
-          top,
-          rx: borderRadius,
-          //ry:borderRadius,
-          strokeWidth: borderWidth,
-          stroke: borderColor,
-          backgroundColor: background,
-          //align,
-          rotate,
-          shadow
-        });
+        Shape = await this.addRectObject(index);
         break;
       case 'image':
-        let url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
-        Shape = await this.loadImageUrl(url);
-        let ShapeWidth = Shape.width;
-        let ShapeHeight = Shape.height;
-
-        Shape.set({
-          url,
-          left,
-          top,
-          rx: borderRadius,
-          ry: borderRadius,
-          strokeWidth: borderWidth,
-          stroke: borderColor,
-          backgroundColor: background,
-          //align,
-          rotate,
-          mode,
-          shadow
-        });
-        Shape.clipPath = new fabric.Rect({
-          width,
-          height,
-          originX: 'center',
-          originY: 'center',
-          rx: borderRadius,
-          rotate
-        });
-        if (mode === 'scaleToFill') {
-          Shape.width = ShapeWidth;
-          Shape.height = ShapeHeight;
-          Shape.set({
-            scaleX: width / ShapeWidth,
-            scaleY: height / ShapeHeight
-          });
-        } else if (mode === 'aspectFill') {
-          /* Shape.scaleToWidth(width);
-          Shape.scaleToHeight(height); */
-          Shape.set({
-            width,
-            height
-          });
-        }
+        Shape = await this.addImageObject(index);
         break;
       case 'qrcode':
-        url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
-        let imgBase64 = jrQrcode.getQrBase64(url, {
-          padding: padding / 1, // 二维码四边空白（默认为10px）
-          width: width / 1, // 二维码图片宽度（默认为256px）
-          height: width / 1, // 二维码图片高度（默认为256px）
-          correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
-          reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
-          background: background, // 二维码背景颜色（默认白色）
-          foreground: color // 二维码颜色（默认黑色）
-        });
-        Shape = await this.loadImageUrl(imgBase64);
-        Shape.set({
-          type: 'qrcode',
-          url,
-          width,
-          height: width,
-          left,
-          top,
-          rx: borderRadius,
-          strokeWidth: borderWidth,
-          stroke: borderColor,
-          //align,
-          angle: rotate,
-          mode,
-          shadow,
-          lockUniScaling: true //只能等比缩放
-        });
+        Shape = await this.addQrcodeObject(index);
         break;
       default:
         break;
@@ -321,7 +205,7 @@ class App extends React.Component {
     this.shapes[type].push(Shape);
     this.canvas_sprite.add(Shape);
   }
-  addTextObject(index){
+  async addTextObject(index) {
     const that = this;
     const currentOptionArr = this.currentOptionArr;
     let { css } = currentOptionArr[index];
@@ -340,57 +224,61 @@ class App extends React.Component {
       borderRadius,
       borderWidth,
       borderColor,
-      background,
       rotate,
       hasBorder,
       //align,
       shadow,
-      mode,
       lineHeight,
-      textAlign
+      textAlign,
+      maxLines
     } = css;
-    width = width / 1;
-    height = height / 1;
-    left = left / 1;
-    top = top / 1;
-    rotate = rotate / 1;
-    borderRadius = borderRadius / 1;
-    borderWidth = borderWidth / 1;
-    rotate = rotate / 1;
-    fontSize = fontSize / 1;
-    lineHeight = lineHeight / 1;
-    padding = padding / 1;
     let Shape;
     let config = {
-      width,
-      height,
+      width: width / 1,
+      height: height / 1,
       fill: color,
       //backgroundColor: background,
       fontWeight,
-      left, //距离画布左侧的距离，单位是像素
-      top, //距离画布上边的距离
-      fontSize, //文字大小
+      left: left / 1, //距离画布左侧的距离，单位是像素
+      top: top / 1, //距离画布上边的距离
+      fontSize: fontSize / 1, //文字大小
       fontFamily,
-      padding,
+      padding: padding / 1,
       [textDecoration]: true,
       //lockUniScaling: true, //只能等比缩放
       textAlign,
       shadow,
-      angle: rotate,
+      angle: rotate / 1,
       splitByGrapheme: true, //文字换行
       zIndex: 2,
-      lineHeight
+      lineHeight: lineHeight / 1,
+      editable: true,
+      maxLines: maxLines / 1
     };
     let textBox = new fabric.Textbox(text, config);
+    if (textBox.textLines.length > maxLines) {
+      let text = '';
+      for (let index = 0; index < maxLines; index++) {
+        const element = textBox.textLines[index];
+        if (index === maxLines - 1) {
+          text = text + element + '..';
+        } else {
+          text += element;
+        }
+      }
+      textBox.set({
+        text
+      });
+    }
     if (hasBorder === 1) {
       let Rect = new fabric.Rect({
         width,
-        height,
+        height: textBox.height / 1,
         left, //距离画布左侧的距离，单位是像素
         top,
-        rx: borderRadius,
+        rx: borderRadius / 1,
         //ry:borderRadius,
-        strokeWidth: borderWidth,
+        strokeWidth: borderWidth / 1,
         stroke: borderColor,
         fill: 'rgba(0,0,0,0)',
         angle: rotate,
@@ -437,12 +325,154 @@ class App extends React.Component {
     } else {
       Shape = textBox;
     }
-    return Shape
+    return Shape;
+  }
+  async addRectObject(index) {
+    const currentOptionArr = this.currentOptionArr;
+    let { css } = currentOptionArr[index];
+    let {
+      width,
+      height,
+      left,
+      top,
+      borderRadius,
+      borderWidth,
+      borderColor,
+      background,
+      rotate,
+      //align,
+      shadow
+    } = css;
+    let Shape = new fabric.Rect({
+      width,
+      height,
+      left,
+      top,
+      rx: borderRadius,
+      //ry:borderRadius,
+      strokeWidth: borderWidth,
+      stroke: borderColor,
+      backgroundColor: background,
+      //align,
+      rotate,
+      shadow
+    });
+    return Shape;
+  }
+  async addImageObject(index) {
+    const currentOptionArr = this.currentOptionArr;
+    let { css } = currentOptionArr[index];
+    let {
+      width,
+      height,
+      left,
+      top,
+      borderRadius,
+      borderWidth,
+      borderColor,
+      background,
+      rotate,
+      //align,
+      shadow,
+      mode
+    } = css;
+    let url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
+    let Shape = await this.loadImageUrl(url);
+    let ShapeWidth = Shape.width;
+    let ShapeHeight = Shape.height;
+
+    Shape.set({
+      url,
+      left: left / 1,
+      top: top / 1,
+      rx: borderRadius / 1,
+      ry: borderRadius / 1,
+      strokeWidth: borderWidth / 1,
+      stroke: borderColor,
+      backgroundColor: background,
+      //align,
+      angle: rotate / 1,
+      mode,
+      shadow
+    });
+    Shape.clipPath = new fabric.Rect({
+      width: width / 1,
+      height: height / 1,
+      originX: 'center',
+      originY: 'center',
+      rx: borderRadius / 1,
+      angle: rotate / 1
+    });
+    if (mode === 'scaleToFill') {
+      Shape.width = ShapeWidth;
+      Shape.height = ShapeHeight;
+      Shape.set({
+        scaleX: width / ShapeWidth,
+        scaleY: height / ShapeHeight
+      });
+    } else if (mode === 'aspectFill') {
+      /* Shape.scaleToWidth(width);
+      Shape.scaleToHeight(height); */
+      Shape.set({
+        width,
+        height
+      });
+    }
+
+    return Shape;
+  }
+  async addQrcodeObject(index) {
+    const currentOptionArr = this.currentOptionArr;
+    let { css } = currentOptionArr[index];
+    let {
+      width,
+      height,
+      left,
+      top,
+      color,
+      borderRadius,
+      borderWidth,
+      borderColor,
+      background,
+      rotate,
+      //align,
+      shadow,
+      mode
+    } = css;
+    let url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
+    let imgBase64 = jrQrcode.getQrBase64(url, {
+      //padding: padding / 1, // 二维码四边空白（默认为10px）
+      width: width / 1, // 二维码图片宽度（默认为256px）
+      height: height / 1, // 二维码图片高度（默认为256px）
+      correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
+      reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
+      background: background, // 二维码背景颜色（默认白色）
+      foreground: color // 二维码颜色（默认黑色）
+    });
+    let Shape = await this.loadImageUrl(imgBase64);
+    Shape.set({
+      type: 'qrcode',
+      url,
+      width: width / 1,
+      height: height / 1,
+      left: left / 1,
+      top: top / 1,
+      rx: borderRadius / 1,
+      strokeWidth: borderWidth / 1,
+      stroke: borderColor,
+      //align,
+      angle: rotate / 1,
+      mode,
+      shadow,
+      lockUniScaling: true //只能等比缩放
+    });
+
+    return Shape;
   }
   loadImageUrl(imgUrl) {
     return new Promise(resolve => {
       fabric.Image.fromURL(imgUrl, function(oImg) {
-        console.log('Shape', oImg);
+        //console.log('Shape', oImg);
         resolve(oImg);
       });
     });
@@ -461,20 +491,20 @@ class App extends React.Component {
     this.views = [];
     Object.keys(shapes).forEach(item => {
       shapes[item].forEach((item2, index) => {
-        console.log('shapes[item2]', item2);
+        //console.log('shapes[item2]', item2);
         let view = {};
         let css = {
           color: `${item2.color}`,
-          background: `${item2.background}`,
+          background: `${item2.backgroundColor}`,
           width: `${item2.width * item2.scaleX}rpx`,
           height: `${item2.height * item2.scaleY}rpx`,
           top: `${item2.top}rpx`,
           left: `${item2.left}rpx`,
-          rotate: `${item2.rotate}`,
+          rotate: `${item2.angle}`,
           borderRadius: `${item2.rx}rpx`,
           borderWidth: `${item2.strokeWidth}rpx`,
           borderColor: `${item2.stroke}`,
-          align: `${item2.align}`,
+          //align: `${item2.align}`,
           shadow: `${item2.shadow}`
         };
         let type = item2.type;
@@ -518,6 +548,7 @@ class App extends React.Component {
             }
           };
         } else if (type === 'rect') {
+          delete css.color;
           view = {
             type,
             css
@@ -701,7 +732,7 @@ ${json.plain(this.finallObj)}
   };
   render() {
     const currentOptionArr = this.currentOptionArr;
-    const { visible, visibleCode } = this.state;
+    const { /* visible,  */ visibleCode } = this.state;
     return (
       <div id='main'>
         <div className='slide'>
