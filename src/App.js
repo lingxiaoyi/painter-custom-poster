@@ -9,6 +9,7 @@ import copy from 'copy-to-clipboard';
 import keydown, { ALL_KEYS } from 'react-keydown';
 import ReactMarkdown from 'react-markdown';
 var json = require('format-json');
+
 const { Option } = Select;
 fabric = fabric.fabric;
 message.config({
@@ -211,7 +212,7 @@ class App extends React.Component {
     let { css } = currentOptionArr[index];
     let {
       width,
-      height,
+      //height,
       text,
       color,
       fontSize,
@@ -230,30 +231,34 @@ class App extends React.Component {
       shadow,
       lineHeight,
       textAlign,
-      maxLines
+      maxLines,
+      textStyle,
+      background
     } = css;
     let Shape;
     let config = {
       width: width / 1,
-      height: height / 1,
+      //height: height / 1,
       fill: color,
-      //backgroundColor: background,
       fontWeight,
-      left: left / 1, //距离画布左侧的距离，单位是像素
-      top: top / 1, //距离画布上边的距离
+      left: left - borderWidth / 1, //距离画布左侧的距离，单位是像素
+      top: top / 1 + ((lineHeight - 1) * fontSize) / 2, //距离画布上边的距离
       fontSize: fontSize / 1, //文字大小
       fontFamily,
       padding: padding / 1,
       [textDecoration]: true,
       //lockUniScaling: true, //只能等比缩放
       textAlign,
+      textStyle,
       shadow,
       angle: rotate / 1,
       splitByGrapheme: true, //文字换行
       zIndex: 2,
       lineHeight: lineHeight / 1,
       editable: true,
-      maxLines: maxLines / 1
+      maxLines: maxLines / 1,
+      textDecoration: textDecoration,
+      lockScalingY: true
     };
     let textBox = new fabric.Textbox(text, config);
     if (textBox.textLines.length > maxLines) {
@@ -271,24 +276,31 @@ class App extends React.Component {
       });
     }
     if (hasBorder === 1) {
+      let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize;
       let Rect = new fabric.Rect({
-        width,
-        height: textBox.height / 1,
-        left, //距离画布左侧的距离，单位是像素
-        top,
+        width: width + (borderWidth / 1) * 2,
+        height: height + (borderWidth / 1) * 2,
+        left: left - borderWidth / 1, //距离画布左侧的距离，单位是像素
+        top: top - borderWidth / 1,
         rx: borderRadius / 1,
         //ry:borderRadius,
         strokeWidth: borderWidth / 1,
         stroke: borderColor,
-        fill: 'rgba(0,0,0,0)',
+        fill: background,
         angle: rotate,
+        shadow,
+        backgroundColor: background,
         selectable: false
       });
       Shape = new fabric.Group([Rect, textBox], {
-        left,
-        top,
-        angle: rotate
+        width: width + (borderWidth / 1) * 2,
+        height: height + (borderWidth / 1) * 2,
+        left: left - borderWidth / 1, //距离画布左侧的距离，单位是像素
+        top: top - borderWidth / 1,
+        angle: rotate,
+        type: 'textGroup'
       });
+      console.log('Shape', Shape);
       Shape.on('scaling', function(e) {
         let obj = this;
         let width = obj.width;
@@ -352,7 +364,7 @@ class App extends React.Component {
       //ry:borderRadius,
       strokeWidth: borderWidth,
       stroke: borderColor,
-      backgroundColor: background,
+      fill: background,
       //align,
       rotate,
       shadow
@@ -495,18 +507,20 @@ class App extends React.Component {
         let view = {};
         let css = {
           color: `${item2.color}`,
-          background: `${item2.backgroundColor}`,
-          width: `${item2.width * item2.scaleX}rpx`,
-          height: `${item2.height * item2.scaleY}rpx`,
-          top: `${item2.top}rpx`,
-          left: `${item2.left}rpx`,
+          background: `${item2.fill}`,
+          width: `${item2.width * item2.scaleX}px`,
+          height: `${item2.height * item2.scaleY}px`,
+          top: `${item2.top}px`,
+          left: `${item2.left}px`,
           rotate: `${item2.angle}`,
-          borderRadius: `${item2.rx}rpx`,
-          borderWidth: `${item2.strokeWidth}rpx`,
+          borderRadius: `${item2.rx}px`,
+          borderWidth: `${item2.strokeWidth}px`,
           borderColor: `${item2.stroke}`,
           //align: `${item2.align}`,
           shadow: `${item2.shadow}`
         };
+        console.log('canvas_sprite.toObject(item2)', canvas_sprite.toObject(item2));
+
         let type = item2.type;
         if (type === 'image') {
           delete css.color;
@@ -530,37 +544,85 @@ class App extends React.Component {
               padding: `${item2.padding}rpx` */
             }
           };
-        } else if (type === 'text') {
+        } else if (type === 'textbox') {
+          delete css.borderRadius;
+          delete css.borderWidth;
+          delete css.borderColor;
           view = {
-            type,
+            type: 'text',
+            text: `${item2.text}`,
             css: {
               ...css,
-              padding: `${item2.padding}rpx`,
-              text: `${item2.text}`,
-              fontSize: `${item2.fontSize}rpx`,
+              color: item2.fill,
+              padding: `${item2.padding}px`,
+              fontSize: `${item2.fontSize}px`,
               fontWeight: `${item2.fontWeight}`,
               maxLines: `${item2.maxLines}`,
-              lineHeight: `${item2.lineHeight * item2.fontSize}`,
+              lineHeight: `${(item2.lineHeight / 1) * item2.fontSize}px`,
               textStyle: `${item2.textStyle}`,
               textDecoration: `${item2.textDecoration}`,
               fontFamily: `${item2.fontFamily}`,
               textAlign: `${item2.textAlign}`
             }
           };
+        } else if (type === 'textGroup') {
+          item2._objects.forEach(ele => {
+            if (ele.type === 'rect') {
+              view = {
+                ...view,
+                type: 'text',
+                css: {
+                  ...css,
+                  ...view.css,
+                  background: `${ele.backgroundColor}`,
+                  borderRadius: `${ele.rx}px`,
+                  borderWidth: `${ele.strokeWidth}px`,
+                  borderColor: `${ele.stroke}`
+                }
+              };
+            } else {
+              view = {
+                ...view,
+                type: 'text',
+                text: `${ele.text}`,
+                css: {
+                  ...css,
+                  ...view.css,
+                  color: ele.fill,
+                  padding: `${ele.padding}px`,
+                  fontSize: `${ele.fontSize}px`,
+                  fontWeight: `${ele.fontWeight}`,
+                  maxLines: `${ele.maxLines}`,
+                  lineHeight: `${(ele.lineHeight / 1) * ele.fontSize}px`,
+                  textStyle: `${ele.textStyle}`,
+                  textDecoration: `${ele.textDecoration}`,
+                  fontFamily: `${ele.fontFamily}`,
+                  textAlign: `${ele.textAlign}`,
+                  shadow: `${ele.shadow}`
+                }
+              };
+            }
+          });
         } else if (type === 'rect') {
           delete css.color;
+          if (item2.strokeWidth === 0) {
+            delete css.borderWidth;
+            delete css.borderColor;
+          }
           view = {
             type,
-            css
+            css: {
+              ...css,
+              color: item2.fill
+            }
           };
         }
-
         this.views.push(view);
       });
     });
     this.finallObj = {
-      width: `${canvas_sprite.width}rpx`,
-      height: `${canvas_sprite.height}rpx`,
+      width: `${canvas_sprite.width}px`,
+      height: `${canvas_sprite.height}px`,
       background: canvas_sprite.backgroundColor,
       views: this.views
     };
@@ -568,12 +630,12 @@ class App extends React.Component {
     export default class LastMayday {
       palette() {
         return (
-${json.plain(this.finallObj)}
+${json.plain(this.finallObj).replace(/px/g, 'px')}
         );
       }
     }
     `;
-    console.log('finallObj', json.plain(this.finallObj));
+    console.log('finallObj', json.plain(this.finallObj).replace(/px/g, 'rpx'));
   }
   copyCode() {
     this.generateCode();

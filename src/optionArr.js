@@ -1,5 +1,5 @@
 let commonProps = {
-  color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
+  color: 'red', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
   background: '#ffffff', //文字区域背景色
   top: 100,
   left: 100,
@@ -26,26 +26,35 @@ export default [
     name: '文字',
     css: {
       ...commonProps,
+      background: 'rgba(0,0,0)',
       width: 200,
       height: 50,
       text: '    我是来测试的阿发发萨芬撒发',
       fontSize: 30,
       fontWeight: 'bold', //文字加粗 可以不写
       maxLines: 2, //最大行数
-      lineHeight: 1,
+      lineHeight: 1.5,
       textStyle: ['fill', 'stroke'], //fill： 填充样式，stroke：镂空样式
       fontFamily: '',
       textAlign: ['center', 'left', 'right'], //文字的对齐方式，分为 left, center, right
       padding: 5,
       textDecoration: ['none', 'overline', 'underline', 'linethrough'],
-      hasBorder: [1, 1] //overline underline line-through 可组合
+      hasBorder: [1, 1], //overline underline line-through 可组合
+      borderRadius: 1,
+      borderWidth: 2,
+      borderColor: '#000000'
     }
   },
   {
     type: 'rect',
     name: '矩形',
     css: {
-      ...commonProps
+      ...commonProps,
+      top: 0,
+      borderRadius: 0,
+      borderWidth: 0,
+      background: 'red',
+      shadow: '' //阴影
     }
   },
   {
