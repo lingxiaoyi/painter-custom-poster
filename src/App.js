@@ -270,7 +270,8 @@ class App extends React.Component {
       editable: true,
       maxLines: maxLines / 1,
       textDecoration: textDecoration,
-      lockScalingY: true
+      lockScalingY: true,
+      mytype: 'textbox'
     };
     if (textStyle === 'stroke') {
       config = {
@@ -321,7 +322,7 @@ class App extends React.Component {
         left, //距离画布左侧的距离，单位是像素
         top,
         angle: rotate,
-        type: 'textGroup'
+        mytype: 'textGroup'
       });
       Shape.on('scaling', function(e) {
         let obj = this;
@@ -396,7 +397,8 @@ class App extends React.Component {
       fill: background,
       //align,
       rotate,
-      shadow
+      shadow,
+      mytype: 'rect'
     });
     return Shape;
   }
@@ -442,7 +444,8 @@ class App extends React.Component {
       //align,
       angle: rotate / 1,
       mode,
-      shadow
+      shadow,
+      mytype: 'image'
     });
 
     if (mode === 'scaleToFill') {
@@ -532,7 +535,6 @@ class App extends React.Component {
     });
     let Shape = await this.loadImageUrl(imgBase64);
     Shape.set({
-      type: 'qrcode',
       url,
       width: width / 1,
       height: width / 1,
@@ -543,7 +545,8 @@ class App extends React.Component {
       stroke: borderColor, */
       //align,
       angle: rotate / 1,
-      lockUniScaling: true //只能等比缩放
+      lockUniScaling: true, //只能等比缩放
+      mytype: 'qrcode'
     });
 
     return Shape;
@@ -587,9 +590,9 @@ class App extends React.Component {
           //align: `${item2.align}`,
           shadow: `${item2.shadow}`
         };
-        console.log('canvas_sprite.toObject(item2)', canvas_sprite.toObject(item2));
+        //console.log('canvas_sprite.toObject(item2)', canvas_sprite.toObject(item2));
 
-        let type = item2.type;
+        let type = item2.mytype;
         if (type === 'image') {
           delete css.color;
           delete css.background;
