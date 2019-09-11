@@ -132,6 +132,7 @@ class App extends React.Component {
       that.updateCanvasState();
     });
     this.addShape(1);
+    //this.addShape(2);
     /* let canvas = this.canvas_sprite;
     canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
   }
@@ -241,8 +242,8 @@ class App extends React.Component {
       //height: height / 1,
       fill: color,
       fontWeight,
-      left: left - borderWidth / 1, //距离画布左侧的距离，单位是像素
-      top: top / 1 + ((lineHeight - 1) * fontSize) / 2, //距离画布上边的距离
+      left: left, //距离画布左侧的距离，单位是像素
+      top: top + ((lineHeight - 1) * fontSize) / 2, //距离画布上边的距离
       fontSize: fontSize / 1, //文字大小
       fontFamily,
       padding: padding / 1,
@@ -260,6 +261,13 @@ class App extends React.Component {
       textDecoration: textDecoration,
       lockScalingY: true
     };
+    if (textStyle === 'stroke') {
+      config = {
+        ...config,
+        stroke: color,
+        fill: 'rgba(0,0,0,0)'
+      };
+    }
     let textBox = new fabric.Textbox(text, config);
     if (textBox.textLines.length > maxLines) {
       let text = '';
@@ -275,13 +283,18 @@ class App extends React.Component {
         text
       });
     }
+    console.log('textBox', textBox.width, textBox.height);
     if (hasBorder === 1) {
-      let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize;
+      let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2;
+      let width = textBox.width + padding * 2;
+      let left = textBox.left - padding;
+      let top = css.top - padding;
       let Rect = new fabric.Rect({
-        width: width + (borderWidth / 1) * 2,
-        height: height + (borderWidth / 1) * 2,
-        left: left - borderWidth / 1, //距离画布左侧的距离，单位是像素
-        top: top - borderWidth / 1,
+        width,
+        height,
+        left, //距离画布左侧的距离，单位是像素
+        top,
+        padding: padding / 1,
         rx: borderRadius / 1,
         //ry:borderRadius,
         strokeWidth: borderWidth / 1,
@@ -293,10 +306,10 @@ class App extends React.Component {
         selectable: false
       });
       Shape = new fabric.Group([Rect, textBox], {
-        width: width + (borderWidth / 1) * 2,
-        height: height + (borderWidth / 1) * 2,
-        left: left - borderWidth / 1, //距离画布左侧的距离，单位是像素
-        top: top - borderWidth / 1,
+        width,
+        height,
+        left, //距离画布左侧的距离，单位是像素
+        top,
         angle: rotate,
         type: 'textGroup'
       });
@@ -574,6 +587,8 @@ class App extends React.Component {
                 css: {
                   ...css,
                   ...view.css,
+                  left: `${item2.left + ele.padding}px`,
+                  top: `${item2.top + ele.padding}px`,
                   background: `${ele.backgroundColor}`,
                   borderRadius: `${ele.rx}px`,
                   borderWidth: `${ele.strokeWidth}px`,
@@ -588,6 +603,8 @@ class App extends React.Component {
                 css: {
                   ...css,
                   ...view.css,
+                  width: `${ele.width}px`,
+                  height: `${ele.height}px`,
                   color: ele.fill,
                   padding: `${ele.padding}px`,
                   fontSize: `${ele.fontSize}px`,
@@ -595,7 +612,7 @@ class App extends React.Component {
                   maxLines: `${ele.maxLines}`,
                   lineHeight: `${(ele.lineHeight / 1) * ele.fontSize}px`,
                   textStyle: `${ele.textStyle}`,
-                  textDecoration: `${ele.textDecoration}`,
+                  textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
                   fontFamily: `${ele.fontFamily}`,
                   textAlign: `${ele.textAlign}`,
                   shadow: `${ele.shadow}`

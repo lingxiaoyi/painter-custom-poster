@@ -26,7 +26,7 @@ export default [
     name: '文字',
     css: {
       ...commonProps,
-      background: 'rgba(0,0,0)',
+      background: 'rgba(0,0,0,0)',
       width: 200,
       height: 50,
       text: '    我是来测试的阿发发萨芬撒发',
@@ -36,12 +36,12 @@ export default [
       lineHeight: 1.5,
       textStyle: ['fill', 'stroke'], //fill： 填充样式，stroke：镂空样式
       fontFamily: '',
-      textAlign: ['center', 'left', 'right'], //文字的对齐方式，分为 left, center, right
-      padding: 5,
-      textDecoration: ['none', 'overline', 'underline', 'linethrough'],
+      textAlign: ['left', 'center', 'right'], //文字的对齐方式，分为 left, center, right
+      padding: 0,
+      textDecoration: ['linethrough', 'overline', 'underline', 'linethrough'],
       hasBorder: [1, 1], //overline underline line-through 可组合
       borderRadius: 1,
-      borderWidth: 2,
+      borderWidth: 1,
       borderColor: '#000000'
     }
   },
@@ -50,6 +50,7 @@ export default [
     name: '矩形',
     css: {
       ...commonProps,
+      width: 200,
       top: 0,
       borderRadius: 0,
       borderWidth: 0,
