@@ -33,8 +33,9 @@ let _config = {
 let newOptionArr = _.cloneDeep(optionArr);
 newOptionArr[1].css.textStyle = newOptionArr[1].css.textStyle[0];
 newOptionArr[1].css.textAlign = newOptionArr[1].css.textAlign[0];
+newOptionArr[1].css.fontWeight = newOptionArr[1].css.fontWeight[0];
 newOptionArr[1].css.textDecoration = newOptionArr[1].css.textDecoration[0];
-newOptionArr[1].css.hasBorder = newOptionArr[1].css.hasBorder[0];
+//newOptionArr[1].css.hasBorder = newOptionArr[1].css.hasBorder[0];
 newOptionArr[3].css.mode = newOptionArr[3].css.mode[0];
 class App extends React.Component {
   constructor(props) {
@@ -132,7 +133,8 @@ class App extends React.Component {
       that.updateCanvasState();
     });
     this.addShape(1);
-    //this.addShape(2);
+    this.addShape(2);
+    this.addShape(3);
     /* let canvas = this.canvas_sprite;
     canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
   }
@@ -227,7 +229,6 @@ class App extends React.Component {
       borderWidth,
       borderColor,
       rotate,
-      hasBorder,
       //align,
       shadow,
       lineHeight,
@@ -236,6 +237,16 @@ class App extends React.Component {
       textStyle,
       background
     } = css;
+    width = width / 1;
+    left = left / 1;
+    top = top / 1;
+    borderRadius = borderRadius / 1;
+    borderWidth = borderWidth / 1;
+    rotate = rotate / 1;
+    fontSize = fontSize / 1;
+    maxLines = maxLines / 1;
+    padding = padding / 1;
+    lineHeight = lineHeight / 1.08; //和painter调试得出的值
     let Shape;
     let config = {
       width: width / 1,
@@ -243,7 +254,7 @@ class App extends React.Component {
       fill: color,
       fontWeight,
       left: left, //距离画布左侧的距离，单位是像素
-      top: top + ((lineHeight - 1) * fontSize) / 2, //距离画布上边的距离
+      top /* : top + ((lineHeight - 1) * fontSize) / 2 */, //距离画布上边的距离
       fontSize: fontSize / 1, //文字大小
       fontFamily,
       padding: padding / 1,
@@ -255,7 +266,7 @@ class App extends React.Component {
       angle: rotate / 1,
       splitByGrapheme: true, //文字换行
       zIndex: 2,
-      lineHeight: lineHeight / 1,
+      lineHeight,
       editable: true,
       maxLines: maxLines / 1,
       textDecoration: textDecoration,
@@ -265,7 +276,7 @@ class App extends React.Component {
       config = {
         ...config,
         stroke: color,
-        fill: 'rgba(0,0,0,0)'
+        fill: 'rgba(0,0,0)'
       };
     }
     let textBox = new fabric.Textbox(text, config);
@@ -283,8 +294,7 @@ class App extends React.Component {
         text
       });
     }
-    console.log('textBox', textBox.width, textBox.height);
-    if (hasBorder === 1) {
+    if (borderWidth || background) {
       let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2;
       let width = textBox.width + padding * 2;
       let left = textBox.left - padding;
@@ -313,7 +323,6 @@ class App extends React.Component {
         angle: rotate,
         type: 'textGroup'
       });
-      console.log('Shape', Shape);
       Shape.on('scaling', function(e) {
         let obj = this;
         let width = obj.width;
@@ -368,6 +377,13 @@ class App extends React.Component {
       //align,
       shadow
     } = css;
+    width = width / 1;
+    height = height / 1;
+    left = left / 1;
+    top = top / 1;
+    borderRadius = borderRadius / 1;
+    borderWidth = borderWidth / 1;
+    rotate = rotate / 1;
     let Shape = new fabric.Rect({
       width,
       height,
@@ -401,10 +417,18 @@ class App extends React.Component {
       shadow,
       mode
     } = css;
+    width = width / 1;
+    height = height / 1;
+    left = left / 1;
+    top = top / 1;
+    borderRadius = borderRadius / 1;
+    borderWidth = borderWidth / 1;
+    rotate = rotate / 1;
+
     let url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
     let Shape = await this.loadImageUrl(url);
-    let ShapeWidth = Shape.width;
-    let ShapeHeight = Shape.height;
+    let imgWidth = Shape.width;
+    let imgHeight = Shape.height;
 
     Shape.set({
       url,
@@ -420,24 +444,55 @@ class App extends React.Component {
       mode,
       shadow
     });
-    Shape.clipPath = new fabric.Rect({
-      width: width / 1,
-      height: height / 1,
-      originX: 'center',
-      originY: 'center',
-      rx: borderRadius / 1,
-      angle: rotate / 1
-    });
+
     if (mode === 'scaleToFill') {
-      Shape.width = ShapeWidth;
-      Shape.height = ShapeHeight;
       Shape.set({
-        scaleX: width / ShapeWidth,
-        scaleY: height / ShapeHeight
+        width: imgWidth,
+        height: imgHeight,
+        scaleX: width / imgWidth,
+        scaleY: height / imgHeight,
+        oldScaleX: width / imgWidth,
+        oldScaleY: height / imgHeight
+      });
+      Shape.clipPath = new fabric.Rect({
+        width,
+        height,
+        originX: 'center',
+        originY: 'center',
+        rx: borderRadius,
+        angle: rotate / 1,
+        scaleX: imgWidth / width,
+        scaleY: imgHeight / height
+      });
+    } else if (mode === 'auto') {
+      //忽略高度会自适应宽度,等比缩放图片
+      Shape.set({
+        width: imgWidth,
+        height: imgHeight,
+        scaleX: width / imgWidth,
+        scaleY: width / imgWidth,
+        oldScaleX: width / imgWidth,
+        oldScaleY: height / imgHeight
+      });
+      Shape.clipPath = new fabric.Rect({
+        width,
+        height,
+        originX: 'center',
+        originY: 'center',
+        rx: borderRadius,
+        angle: rotate / 1,
+        scaleX: imgWidth / width,
+        scaleY: imgHeight / height
       });
     } else if (mode === 'aspectFill') {
-      /* Shape.scaleToWidth(width);
-      Shape.scaleToHeight(height); */
+      Shape.clipPath = new fabric.Rect({
+        width: width / 1,
+        height: height / 1,
+        originX: 'center',
+        originY: 'center',
+        rx: borderRadius / 1,
+        angle: rotate / 1
+      });
       Shape.set({
         width,
         height
@@ -451,24 +506,25 @@ class App extends React.Component {
     let { css } = currentOptionArr[index];
     let {
       width,
-      height,
       left,
       top,
       color,
-      borderRadius,
+      /* borderRadius,
       borderWidth,
-      borderColor,
+      borderColor, */
       background,
-      rotate,
+      rotate
       //align,
-      shadow,
-      mode
     } = css;
+    width = width / 1;
+    left = left / 1;
+    top = top / 1;
+    rotate = rotate / 1;
     let url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
     let imgBase64 = jrQrcode.getQrBase64(url, {
-      //padding: padding / 1, // 二维码四边空白（默认为10px）
+      padding: 0, // 二维码四边空白（默认为10px）
       width: width / 1, // 二维码图片宽度（默认为256px）
-      height: height / 1, // 二维码图片高度（默认为256px）
+      height: width / 1, // 二维码图片高度（默认为256px）
       correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
       reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
       background: background, // 二维码背景颜色（默认白色）
@@ -479,16 +535,14 @@ class App extends React.Component {
       type: 'qrcode',
       url,
       width: width / 1,
-      height: height / 1,
+      height: width / 1,
       left: left / 1,
       top: top / 1,
-      rx: borderRadius / 1,
+      /* rx: borderRadius / 1,
       strokeWidth: borderWidth / 1,
-      stroke: borderColor,
+      stroke: borderColor, */
       //align,
       angle: rotate / 1,
-      mode,
-      shadow,
       lockUniScaling: true //只能等比缩放
     });
 
@@ -516,8 +570,9 @@ class App extends React.Component {
     this.views = [];
     Object.keys(shapes).forEach(item => {
       shapes[item].forEach((item2, index) => {
-        //console.log('shapes[item2]', item2);
         let view = {};
+        //let oldScaleX = item2.oldScaleX || 1;
+        let oldScaleY =item2.oldScaleY || 1;
         let css = {
           color: `${item2.color}`,
           background: `${item2.fill}`,
@@ -526,7 +581,7 @@ class App extends React.Component {
           top: `${item2.top}px`,
           left: `${item2.left}px`,
           rotate: `${item2.angle}`,
-          borderRadius: `${item2.rx}px`,
+          borderRadius: `${item2.rx  * (item2.scaleY / oldScaleY)}px`,
           borderWidth: `${item2.strokeWidth}px`,
           borderColor: `${item2.stroke}`,
           //align: `${item2.align}`,
@@ -549,6 +604,10 @@ class App extends React.Component {
         } else if (type === 'qrcode') {
           delete css.color;
           delete css.background;
+          delete css.borderRadius;
+          delete css.borderWidth;
+          delete css.borderColor;
+          delete css.shadow;
           view = {
             type,
             content: `${item2.url}`,
@@ -588,7 +647,7 @@ class App extends React.Component {
                   ...css,
                   ...view.css,
                   left: `${item2.left + ele.padding}px`,
-                  top: `${item2.top + ele.padding}px`,
+                  top: `${item2.top + ele.padding + ele.strokeWidth}px`,
                   background: `${ele.backgroundColor}`,
                   borderRadius: `${ele.rx}px`,
                   borderWidth: `${ele.strokeWidth}px`,
@@ -610,7 +669,7 @@ class App extends React.Component {
                   fontSize: `${ele.fontSize}px`,
                   fontWeight: `${ele.fontWeight}`,
                   maxLines: `${ele.maxLines}`,
-                  lineHeight: `${(ele.lineHeight / 1) * ele.fontSize}px`,
+                  lineHeight: `${ele.lineHeight * 1.08 * ele.fontSize}px`,
                   textStyle: `${ele.textStyle}`,
                   textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
                   fontFamily: `${ele.fontFamily}`,
