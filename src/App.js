@@ -415,7 +415,8 @@ class App extends React.Component {
       rotate,
       //align,
       shadow,
-      mode
+      mode,
+      url
     } = css;
     width = width / 1;
     height = height / 1;
@@ -425,7 +426,6 @@ class App extends React.Component {
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
 
-    let url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
     let Shape = await this.loadImageUrl(url);
     let imgWidth = Shape.width;
     let imgHeight = Shape.height;
@@ -513,14 +513,14 @@ class App extends React.Component {
       borderWidth,
       borderColor, */
       background,
-      rotate
+      rotate,
+      url
       //align,
     } = css;
     width = width / 1;
     left = left / 1;
     top = top / 1;
     rotate = rotate / 1;
-    let url = 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg';
     let imgBase64 = jrQrcode.getQrBase64(url, {
       padding: 0, // 二维码四边空白（默认为10px）
       width: width / 1, // 二维码图片宽度（默认为256px）
@@ -572,7 +572,7 @@ class App extends React.Component {
       shapes[item].forEach((item2, index) => {
         let view = {};
         //let oldScaleX = item2.oldScaleX || 1;
-        let oldScaleY =item2.oldScaleY || 1;
+        let oldScaleY = item2.oldScaleY || 1;
         let css = {
           color: `${item2.color}`,
           background: `${item2.fill}`,
@@ -581,7 +581,7 @@ class App extends React.Component {
           top: `${item2.top}px`,
           left: `${item2.left}px`,
           rotate: `${item2.angle}`,
-          borderRadius: `${item2.rx  * (item2.scaleY / oldScaleY)}px`,
+          borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}px`,
           borderWidth: `${item2.strokeWidth}px`,
           borderColor: `${item2.stroke}`,
           //align: `${item2.align}`,

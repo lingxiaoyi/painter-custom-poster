@@ -54,6 +54,7 @@ export default [
     type: 'image',
     name: '图片',
     css: {
+      url: 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg',
       mode: ['scaleToFill', 'aspectFill', 'auto'],
       top: 100,
       left: 100,
@@ -70,6 +71,7 @@ export default [
     type: 'qrcode',
     name: '二维码',
     css: {
+      url: '哈哈哈',
       color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
       background: '#ffffff', //文字区域背景色
       top: 100,
