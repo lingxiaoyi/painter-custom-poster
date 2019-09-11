@@ -4,7 +4,7 @@ import _ from 'lodash';
 import jrQrcode from 'jr-qrcode';
 import optionArr from './optionArr';
 import './App.scss';
-import { Button, Input, message, Select, Modal /* , Icon, Drawer  */ } from 'antd';
+import { Button, Input, message, Select, Modal, Icon, Drawer } from 'antd';
 import copy from 'copy-to-clipboard';
 import keydown, { ALL_KEYS } from 'react-keydown';
 import ReactMarkdown from 'react-markdown';
@@ -119,7 +119,7 @@ class App extends React.Component {
       if (options.target) {
         that.activeObject = options.target;
         console.log('有对象被点击咯! ', options.target.type);
-        //that.showDrawer()
+        that.showDrawer();
         that.activeObject.set({
           radius: 150
         });
@@ -401,6 +401,48 @@ class App extends React.Component {
       mytype: 'rect'
     });
     return Shape;
+  }
+  updateRect() {
+    const currentOptionArr = this.currentOptionArr;
+    let { css } = currentOptionArr[2];
+    let {
+      width,
+      height,
+      left,
+      top,
+      borderRadius,
+      borderWidth,
+      borderColor,
+      background,
+      rotate,
+      //align,
+      shadow
+    } = css;
+    console.log('left',left);
+    width = width / 1;
+    height = height / 1;
+    left = left / 1;
+    top = top / 1;
+    borderRadius = borderRadius / 1;
+    borderWidth = borderWidth / 1;
+    rotate = rotate / 1;
+    console.log('this.activeObject', this.activeObject);
+    this.activeObject.set({
+      width,
+      height,
+      left,
+      top,
+      rx: borderRadius,
+      //ry:borderRadius,
+      strokeWidth: borderWidth,
+      stroke: borderColor,
+      fill: background,
+      //align,
+      rotate,
+      shadow,
+      mytype: 'rect'
+    });
+    this.canvas_sprite.renderAll();
   }
   async addImageObject(index) {
     const currentOptionArr = this.currentOptionArr;
@@ -873,7 +915,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
   };
   render() {
     const currentOptionArr = this.currentOptionArr;
-    const { /* visible,  */ visibleCode } = this.state;
+    const { visible, visibleCode } = this.state;
     return (
       <div id='main'>
         <div className='slide'>
@@ -960,83 +1002,84 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
             })}
           </div>
         </div>
-        {/* <div className='edit-modal'>
-          <div>
-            <Button type='primary' onClick={this.showDrawer}>
-              <Icon type='plus' /> New account
-            </Button>
-            <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible}>
-              {optionArr.map((item, i) => {
-                if (item.type === this.activeObject.type) {
-                  return (
-                    <div key={i} className='option-li'>
-                      <div className='row'>
-                        <div className='h3'>{item.name} </div>
-                        <div className='btn'>
-                          <Button type='primary' onClick={this.addShape.bind(this, i)}>
-                            添加
-                          </Button>
+        {
+          <div className='edit-modal'>
+            <div>
+              <Button type='primary' onClick={this.showDrawer}>
+                <Icon type='plus' /> New account
+              </Button>
+              <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible} mask={false}>
+                {optionArr.map((item, i) => {
+                  let type = this.activeObject.type;
+                  if (type === 'group') {
+                    type = 'text';
+                  }
+                  if (item.type === type) {
+                    return (
+                      <div key={i} className='option-li'>
+                        <div className='row'>
+                          <div className='h3'>{item.name} </div>
                         </div>
+                        {Object.keys(item.css).map((item2, i2) => {
+                          return (
+                            <div className='row' key={i2}>
+                              <div className='h3'>{item2} </div>
+                              {!_.isArray(item.css[item2]) && (
+                                <Input
+                                  defaultValue={item.css[item2]}
+                                  onChange={event => {
+                                    currentOptionArr[i].css[item2] = event.target.value;
+                                    this.updateRect();
+                                  }}
+                                />
+                              )}
+                              {_.isArray(item.css[item2]) && (
+                                <Select
+                                  defaultValue={item.css[item2][0]}
+                                  style={{ width: 120 }}
+                                  onChange={value => {
+                                    currentOptionArr[i].css[item2] = value;
+                                  }}
+                                >
+                                  {item.css[item2].map((item3, i3) => {
+                                    return (
+                                      <Option value={item3} key={i3}>
+                                        {item3}
+                                      </Option>
+                                    );
+                                  })}
+                                </Select>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                      {Object.keys(item.css).map((item2, i2) => {
-                        return (
-                          <div className='row' key={i2}>
-                            <div className='h3'>{item2} </div>
-                            {!_.isArray(item.css[item2]) && (
-                              <Input
-                                defaultValue={item.css[item2]}
-                                onChange={event => {
-                                  currentOptionArr[i].css[item2] = event.target.value;
-                                }}
-                              />
-                            )}
-                            {_.isArray(item.css[item2]) && (
-                              <Select
-                                defaultValue={item.css[item2][0]}
-                                style={{ width: 120 }}
-                                onChange={value => {
-                                  currentOptionArr[i].css[item2] = value;
-                                }}
-                              >
-                                {item.css[item2].map((item3, i3) => {
-                                  return (
-                                    <Option value={item3} key={i3}>
-                                      {item3}
-                                    </Option>
-                                  );
-                                })}
-                              </Select>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                }
-              })}
-              <div
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  bottom: 0,
-                  width: '100%',
-                  borderTop: '1px solid #e9e9e9',
-                  padding: '10px 16px',
-                  background: '#fff',
-                  textAlign: 'right'
-                }}
-              >
-                <Button onClick={this.onClose} style={{ marginRight: 8 }}>
-                  Cancel
-                </Button>
-                <Button onClick={this.handleSubmit} type='primary'>
-                  Submit
-                </Button>
-              </div>
-            </Drawer>
+                    );
+                  }
+                })}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    bottom: 0,
+                    width: '100%',
+                    borderTop: '1px solid #e9e9e9',
+                    padding: '10px 16px',
+                    background: '#fff',
+                    textAlign: 'right'
+                  }}
+                >
+                  <Button onClick={this.onClose} style={{ marginRight: 8 }}>
+                    Cancel
+                  </Button>
+                  <Button onClick={this.handleSubmit} type='primary'>
+                    Submit
+                  </Button>
+                </div>
+              </Drawer>
+            </div>
           </div>
-        </div>
-       */}
+        }
         <Modal
           title='view code'
           visible={visibleCode}
