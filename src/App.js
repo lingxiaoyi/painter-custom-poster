@@ -402,48 +402,6 @@ class App extends React.Component {
     });
     return Shape;
   }
-  updateRect() {
-    const currentOptionArr = this.currentOptionArr;
-    let { css } = currentOptionArr[2];
-    let {
-      width,
-      height,
-      left,
-      top,
-      borderRadius,
-      borderWidth,
-      borderColor,
-      background,
-      rotate,
-      //align,
-      shadow
-    } = css;
-    console.log('left',left);
-    width = width / 1;
-    height = height / 1;
-    left = left / 1;
-    top = top / 1;
-    borderRadius = borderRadius / 1;
-    borderWidth = borderWidth / 1;
-    rotate = rotate / 1;
-    console.log('this.activeObject', this.activeObject);
-    this.activeObject.set({
-      width,
-      height,
-      left,
-      top,
-      rx: borderRadius,
-      //ry:borderRadius,
-      strokeWidth: borderWidth,
-      stroke: borderColor,
-      fill: background,
-      //align,
-      rotate,
-      shadow,
-      mytype: 'rect'
-    });
-    this.canvas_sprite.renderAll();
-  }
   async addImageObject(index) {
     const currentOptionArr = this.currentOptionArr;
     let { css } = currentOptionArr[index];
@@ -600,6 +558,165 @@ class App extends React.Component {
         resolve(oImg);
       });
     });
+  }
+  updateObject() {
+    let type = this.activeObject.mytype;
+    switch (type) {
+      case 'text':
+        this.addTextObject(1);
+        break;
+      case 'rect':
+        this.updateRectObject(2);
+        break;
+      case 'image':
+        this.updateImageObject(3);
+        break;
+      case 'qrcode':
+        this.addQrcodeObject(4);
+        break;
+      default:
+        break;
+    }
+    this.canvas_sprite.renderAll();
+  }
+  updateRectObject() {
+    const currentOptionArr = this.currentOptionArr;
+    let { css } = currentOptionArr[2];
+    let {
+      width,
+      height,
+      left,
+      top,
+      borderRadius,
+      borderWidth,
+      borderColor,
+      background,
+      rotate,
+      //align,
+      shadow
+    } = css;
+    width = width / 1;
+    height = height / 1;
+    left = left / 1;
+    top = top / 1;
+    borderRadius = borderRadius / 1;
+    borderWidth = borderWidth / 1;
+    rotate = rotate / 1;
+    this.activeObject.set({
+      width,
+      height,
+      left,
+      top,
+      rx: borderRadius,
+      //ry:borderRadius,
+      strokeWidth: borderWidth,
+      stroke: borderColor,
+      fill: background,
+      //align,
+      rotate,
+      shadow,
+      mytype: 'rect'
+    });
+  }
+  updateImageObject(index) {
+    const currentOptionArr = this.currentOptionArr;
+    let { css } = currentOptionArr[index];
+    let {
+      width,
+      height,
+      left,
+      top,
+      borderRadius,
+      borderWidth,
+      borderColor,
+      background,
+      rotate,
+      //align,
+      shadow,
+      mode,
+      url
+    } = css;
+    width = width / 1;
+    height = height / 1;
+    left = left / 1;
+    top = top / 1;
+    borderRadius = borderRadius / 1;
+    borderWidth = borderWidth / 1;
+    rotate = rotate / 1;
+
+    let Shape = this.activeObject;
+    let imgWidth = Shape.width;
+    let imgHeight = Shape.height;
+
+    Shape.set({
+      url,
+      left: left / 1,
+      top: top / 1,
+      rx: borderRadius / 1,
+      ry: borderRadius / 1,
+      strokeWidth: borderWidth / 1,
+      stroke: borderColor,
+      backgroundColor: background,
+      //align,
+      angle: rotate / 1,
+      mode,
+      shadow,
+      mytype: 'image'
+    });
+
+    if (mode === 'scaleToFill') {
+      Shape.set({
+        width: imgWidth,
+        height: imgHeight,
+        scaleX: width / imgWidth,
+        scaleY: height / imgHeight,
+        oldScaleX: width / imgWidth,
+        oldScaleY: height / imgHeight
+      });
+      Shape.clipPath = new fabric.Rect({
+        width,
+        height,
+        originX: 'center',
+        originY: 'center',
+        rx: borderRadius,
+        angle: rotate / 1,
+        scaleX: imgWidth / width,
+        scaleY: imgHeight / height
+      });
+    } else if (mode === 'auto') {
+      //忽略高度会自适应宽度,等比缩放图片
+      Shape.set({
+        width: imgWidth,
+        height: imgHeight,
+        scaleX: width / imgWidth,
+        scaleY: width / imgWidth,
+        oldScaleX: width / imgWidth,
+        oldScaleY: height / imgHeight
+      });
+      Shape.clipPath = new fabric.Rect({
+        width,
+        height,
+        originX: 'center',
+        originY: 'center',
+        rx: borderRadius,
+        angle: rotate / 1,
+        scaleX: imgWidth / width,
+        scaleY: imgHeight / height
+      });
+    } else if (mode === 'aspectFill') {
+      Shape.clipPath = new fabric.Rect({
+        width: width / 1,
+        height: height / 1,
+        originX: 'center',
+        originY: 'center',
+        rx: borderRadius / 1,
+        angle: rotate / 1
+      });
+      Shape.set({
+        width,
+        height
+      });
+    }
   }
   clearCanvas() {
     this.rects.forEach(function(item, i) {
@@ -1029,7 +1146,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                                   defaultValue={item.css[item2]}
                                   onChange={event => {
                                     currentOptionArr[i].css[item2] = event.target.value;
-                                    this.updateRect();
+                                    this.updateObject();
                                   }}
                                 />
                               )}
@@ -1039,6 +1156,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                                   style={{ width: 120 }}
                                   onChange={value => {
                                     currentOptionArr[i].css[item2] = value;
+                                    this.updateObject();
                                   }}
                                 >
                                   {item.css[item2].map((item3, i3) => {
@@ -1057,25 +1175,6 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                     );
                   }
                 })}
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    bottom: 0,
-                    width: '100%',
-                    borderTop: '1px solid #e9e9e9',
-                    padding: '10px 16px',
-                    background: '#fff',
-                    textAlign: 'right'
-                  }}
-                >
-                  <Button onClick={this.onClose} style={{ marginRight: 8 }}>
-                    Cancel
-                  </Button>
-                  <Button onClick={this.handleSubmit} type='primary'>
-                    Submit
-                  </Button>
-                </div>
               </Drawer>
             </div>
           </div>
