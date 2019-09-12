@@ -50,17 +50,12 @@ class App extends React.Component {
     this.state = {
       redoButtonStatus: '',
       undoButtonStatus: '',
-      activeObjectOptions: {} //当前编辑对象的配置
+      activeObjectOptions: {}, //当前编辑对象的配置
+      currentOptionArr: newOptionArr //当前可设置的数组的值
     };
     this.currentOptionArr = newOptionArr; //当前图像数据集合
     this.views = []; //所有元素的信息
     this.canvas_sprite = ''; //渲图片的canvas对象
-    this.shapes = {
-      text: [],
-      rect: [],
-      image: [],
-      qrcode: []
-    };
     this.height = 300; //固定死
     this.width = 0; //通过实际宽高比计算出来的
     this.activeObject = {};
@@ -206,7 +201,7 @@ class App extends React.Component {
         break;
     }
     this.canvas_sprite.setActiveObject(Shape);
-    this.shapes[type].push(Shape);
+    this.activeObject = Shape;
     this.canvas_sprite.add(Shape);
   }
   async addTextObject(index) {
@@ -270,8 +265,7 @@ class App extends React.Component {
       editable: true,
       maxLines: maxLines / 1,
       textDecoration: textDecoration,
-      lockScalingY: true,
-      mytype: 'textbox'
+      lockScalingY: true
     };
     if (textStyle === 'stroke') {
       config = {
@@ -295,71 +289,67 @@ class App extends React.Component {
         text
       });
     }
-    if (borderWidth || background) {
-      let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2;
-      let width = textBox.width + padding * 2;
-      let left = textBox.left - padding;
-      let top = css.top - padding;
-      let Rect = new fabric.Rect({
+    let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2;
+    width = textBox.width + padding * 2;
+    left = textBox.left - padding;
+    top = css.top - padding;
+    let Rect = new fabric.Rect({
+      width,
+      height,
+      left, //距离画布左侧的距离，单位是像素
+      top,
+      padding: padding / 1,
+      rx: borderRadius / 1,
+      //ry:borderRadius,
+      strokeWidth: borderWidth / 1,
+      stroke: borderColor,
+      fill: background,
+      angle: rotate,
+      shadow,
+      backgroundColor: background,
+      selectable: false
+    });
+    Shape = new fabric.Group([Rect, textBox], {
+      width,
+      height,
+      left, //距离画布左侧的距离，单位是像素
+      top,
+      angle: rotate,
+      mytype: 'textGroup'
+    });
+    Shape.on('scaling', function(e) {
+      let obj = this;
+      let width = obj.width;
+      let height = obj.height;
+      let w = obj.width * obj.scaleX;
+      let h = obj.height * obj.scaleY;
+      Rect.set({
+        left: -(w - width / 2),
+        top: -(h - height / 2),
+        height: h,
+        width: w,
+        rx: borderRadius,
+        strokeWidth: borderWidth
+      });
+      textBox.set({
+        left: -(w - width / 2),
+        top: -(h - height / 2),
         width,
         height,
-        left, //距离画布左侧的距离，单位是像素
-        top,
-        padding: padding / 1,
-        rx: borderRadius / 1,
-        //ry:borderRadius,
-        strokeWidth: borderWidth / 1,
-        stroke: borderColor,
-        fill: background,
-        angle: rotate,
-        shadow,
-        backgroundColor: background,
-        selectable: false
+        fontSize,
+        scaleX: 1,
+        scaleY: 1
       });
-      Shape = new fabric.Group([Rect, textBox], {
-        width,
-        height,
-        left, //距离画布左侧的距离，单位是像素
-        top,
-        angle: rotate,
-        mytype: 'textGroup'
+      obj.set({
+        height: h,
+        width: w,
+        scaleX: 1,
+        scaleY: 1,
+        originX: 'left'
       });
-      Shape.on('scaling', function(e) {
-        let obj = this;
-        let width = obj.width;
-        let height = obj.height;
-        let w = obj.width * obj.scaleX;
-        let h = obj.height * obj.scaleY;
-        Rect.set({
-          left: -(w - width / 2),
-          top: -(h - height / 2),
-          height: h,
-          width: w,
-          rx: borderRadius,
-          strokeWidth: borderWidth
-        });
-        textBox.set({
-          left: -(w - width / 2),
-          top: -(h - height / 2),
-          width,
-          height,
-          fontSize,
-          scaleX: 1,
-          scaleY: 1
-        });
-        obj.set({
-          height: h,
-          width: w,
-          scaleX: 1,
-          scaleY: 1,
-          originX: 'left'
-        });
 
-        that.canvas_sprite.renderAll();
-      });
-    } else {
-      Shape = textBox;
-    }
+      that.canvas_sprite.renderAll();
+    });
     return Shape;
   }
   async addRectObject(index) {
@@ -561,25 +551,26 @@ class App extends React.Component {
   }
   updateObject() {
     let type = this.activeObject.mytype;
+    this.canvas_sprite.remove(this.activeObject);
     switch (type) {
-      case 'text':
-        this.addTextObject(1);
+      case 'textGroup':
+        this.addShape(1);
         break;
       case 'rect':
-        this.updateRectObject(2);
+        this.addShape(2);
         break;
       case 'image':
-        this.updateImageObject(3);
+        this.addShape(3);
         break;
       case 'qrcode':
-        this.addQrcodeObject(4);
+        this.addShape(4);
         break;
       default:
         break;
     }
     this.canvas_sprite.renderAll();
   }
-  updateRectObject() {
+  updateRectObject(index) {
     const currentOptionArr = this.currentOptionArr;
     let { css } = currentOptionArr[2];
     let {
@@ -718,6 +709,42 @@ class App extends React.Component {
       });
     }
   }
+  updateQrcodeObject(index) {
+    const currentOptionArr = this.currentOptionArr;
+    let { css } = currentOptionArr[index];
+    let {
+      width,
+      left,
+      top,
+      //color,
+      /* borderRadius,
+      borderWidth,
+      borderColor, */
+      //background,
+      rotate,
+      url
+      //align,
+    } = css;
+    width = width / 1;
+    left = left / 1;
+    top = top / 1;
+    rotate = rotate / 1;
+    let Shape = this.activeObject;
+    Shape.set({
+      url,
+      width: width / 1,
+      height: width / 1,
+      left: left / 1,
+      top: top / 1,
+      /* rx: borderRadius / 1,
+      strokeWidth: borderWidth / 1,
+      stroke: borderColor, */
+      //align,
+      angle: rotate / 1,
+      lockUniScaling: true, //只能等比缩放
+      mytype: 'qrcode'
+    });
+  }
   clearCanvas() {
     this.rects.forEach(function(item, i) {
       item.remove();
@@ -727,58 +754,56 @@ class App extends React.Component {
     });
   }
   generateCode() {
-    let shapes = this.shapes;
     let canvas_sprite = this.canvas_sprite;
     this.views = [];
-    Object.keys(shapes).forEach(item => {
-      shapes[item].forEach((item2, index) => {
-        let view = {};
-        //let oldScaleX = item2.oldScaleX || 1;
-        let oldScaleY = item2.oldScaleY || 1;
-        let css = {
-          color: `${item2.color}`,
-          background: `${item2.fill}`,
-          width: `${item2.width * item2.scaleX}px`,
-          height: `${item2.height * item2.scaleY}px`,
-          top: `${item2.top}px`,
-          left: `${item2.left}px`,
-          rotate: `${item2.angle}`,
-          borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}px`,
-          borderWidth: `${item2.strokeWidth}px`,
-          borderColor: `${item2.stroke}`,
-          //align: `${item2.align}`,
-          shadow: `${item2.shadow}`
-        };
-        //console.log('canvas_sprite.toObject(item2)', canvas_sprite.toObject(item2));
+    canvas_sprite.getObjects().forEach((item2, index) => {
+      let view = {};
+      //let oldScaleX = item2.oldScaleX || 1;
+      let oldScaleY = item2.oldScaleY || 1;
+      let css = {
+        color: `${item2.color}`,
+        background: `${item2.fill}`,
+        width: `${item2.width * item2.scaleX}px`,
+        height: `${item2.height * item2.scaleY}px`,
+        top: `${item2.top}px`,
+        left: `${item2.left}px`,
+        rotate: `${item2.angle}`,
+        borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}px`,
+        borderWidth: `${item2.strokeWidth}px`,
+        borderColor: `${item2.stroke}`,
+        //align: `${item2.align}`,
+        shadow: `${item2.shadow}`
+      };
+      //console.log('canvas_sprite.toObject(item2)', canvas_sprite.toObject(item2));
 
-        let type = item2.mytype;
-        if (type === 'image') {
-          delete css.color;
-          delete css.background;
-          view = {
-            type,
-            url: `${item2.url}`,
-            css: {
-              ...css,
-              mode: `${item2.mode}`
-            }
-          };
-        } else if (type === 'qrcode') {
-          delete css.color;
-          delete css.background;
-          delete css.borderRadius;
-          delete css.borderWidth;
-          delete css.borderColor;
-          delete css.shadow;
-          view = {
-            type,
-            content: `${item2.url}`,
-            css: {
-              ...css /* ,
+      let type = item2.mytype;
+      if (type === 'image') {
+        delete css.color;
+        delete css.background;
+        view = {
+          type,
+          url: `${item2.url}`,
+          css: {
+            ...css,
+            mode: `${item2.mode}`
+          }
+        };
+      } else if (type === 'qrcode') {
+        delete css.color;
+        delete css.background;
+        delete css.borderRadius;
+        delete css.borderWidth;
+        delete css.borderColor;
+        delete css.shadow;
+        view = {
+          type,
+          content: `${item2.url}`,
+          css: {
+            ...css /* ,
               padding: `${item2.padding}rpx` */
-            }
-          };
-        } else if (type === 'textbox') {
+          }
+        };
+      } /*  else if (type === 'textbox') {
           delete css.borderRadius;
           delete css.borderWidth;
           delete css.borderColor;
@@ -799,64 +824,65 @@ class App extends React.Component {
               textAlign: `${item2.textAlign}`
             }
           };
-        } else if (type === 'textGroup') {
-          item2._objects.forEach(ele => {
-            if (ele.type === 'rect') {
-              view = {
-                ...view,
-                type: 'text',
-                css: {
-                  ...css,
-                  ...view.css,
-                  left: `${item2.left + ele.padding}px`,
-                  top: `${item2.top + ele.padding + ele.strokeWidth}px`,
-                  background: `${ele.backgroundColor}`,
-                  borderRadius: `${ele.rx}px`,
-                  borderWidth: `${ele.strokeWidth}px`,
-                  borderColor: `${ele.stroke}`
-                }
-              };
-            } else {
-              view = {
-                ...view,
-                type: 'text',
-                text: `${ele.text}`,
-                css: {
-                  ...css,
-                  ...view.css,
-                  width: `${ele.width}px`,
-                  height: `${ele.height}px`,
-                  color: ele.fill,
-                  padding: `${ele.padding}px`,
-                  fontSize: `${ele.fontSize}px`,
-                  fontWeight: `${ele.fontWeight}`,
-                  maxLines: `${ele.maxLines}`,
-                  lineHeight: `${ele.lineHeight * 1.08 * ele.fontSize}px`,
-                  textStyle: `${ele.textStyle}`,
-                  textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
-                  fontFamily: `${ele.fontFamily}`,
-                  textAlign: `${ele.textAlign}`,
-                  shadow: `${ele.shadow}`
-                }
-              };
-            }
-          });
-        } else if (type === 'rect') {
-          delete css.color;
-          if (item2.strokeWidth === 0) {
-            delete css.borderWidth;
-            delete css.borderColor;
+        }  */ else if (
+        type === 'textGroup'
+      ) {
+        item2._objects.forEach(ele => {
+          if (ele.type === 'rect') {
+            view = {
+              ...view,
+              type: 'text',
+              css: {
+                ...css,
+                ...view.css,
+                left: `${item2.left + ele.padding}px`,
+                top: `${item2.top + ele.padding + ele.strokeWidth}px`,
+                background: `${ele.backgroundColor}`,
+                borderRadius: `${ele.rx}px`,
+                borderWidth: `${ele.strokeWidth}px`,
+                borderColor: `${ele.stroke}`
+              }
+            };
+          } else {
+            view = {
+              ...view,
+              type: 'text',
+              text: `${ele.text}`,
+              css: {
+                ...css,
+                ...view.css,
+                width: `${ele.width}px`,
+                height: `${ele.height}px`,
+                color: ele.fill,
+                padding: `${ele.padding}px`,
+                fontSize: `${ele.fontSize}px`,
+                fontWeight: `${ele.fontWeight}`,
+                maxLines: `${ele.maxLines}`,
+                lineHeight: `${ele.lineHeight * 1.08 * ele.fontSize}px`,
+                textStyle: `${ele.textStyle}`,
+                textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
+                fontFamily: `${ele.fontFamily}`,
+                textAlign: `${ele.textAlign}`,
+                shadow: `${ele.shadow}`
+              }
+            };
           }
-          view = {
-            type,
-            css: {
-              ...css,
-              color: item2.fill
-            }
-          };
+        });
+      } else if (type === 'rect') {
+        delete css.color;
+        if (item2.strokeWidth === 0) {
+          delete css.borderWidth;
+          delete css.borderColor;
         }
-        this.views.push(view);
-      });
+        view = {
+          type,
+          css: {
+            ...css,
+            color: item2.fill
+          }
+        };
+      }
+      this.views.push(view);
     });
     this.finallObj = {
       width: `${canvas_sprite.width}px`,
@@ -988,27 +1014,95 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     this.activeObject = canvas_sprite.getActiveObject();
     this.showDrawer();
     console.log('this.activeObject', this.activeObject);
+    let type = this.activeObject.mytype;
+    this.canvas_sprite.remove(this.activeObject);
+    let item2 = this.activeObject;
+    //let oldScaleX = item2.oldScaleX || 1;
+    let oldScaleY = item2.oldScaleY || 1;
+    let css = {
+      color: `${item2.color}`,
+      background: `${item2.fill}`,
+      width: `${item2.width * item2.scaleX}`,
+      height: `${item2.height * item2.scaleY}`,
+      top: `${item2.top}`,
+      left: `${item2.left}`,
+      rotate: `${item2.angle}`,
+      borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}`,
+      borderWidth: `${item2.strokeWidth}`,
+      borderColor: `${item2.stroke}`,
+      //align: `${item2.align}`,
+      shadow: `${item2.shadow}`
+    };
+    let index = '';
+    switch (type) {
+      case 'textGroup':
+        index = 1;
+        item2._objects.forEach(ele => {
+          if (ele.type === 'rect') {
+            css = {
+              ...css,
+              background: `${ele.backgroundColor}`,
+              borderRadius: `${ele.rx}`,
+              borderWidth: `${ele.strokeWidth}`,
+              borderColor: `${ele.stroke}`
+            };
+          } else {
+            css = {
+              ...css,
+              background: `${ele.backgroundColor}`,
+              borderRadius: `${ele.rx}`,
+              borderWidth: `${ele.strokeWidth}`,
+              borderColor: `${ele.stroke}`,
+              color: ele.fill,
+              padding: `${ele.padding}`,
+              fontSize: `${ele.fontSize}`,
+              fontWeight: `${ele.fontWeight}`,
+              maxLines: `${ele.maxLines}`,
+              lineHeight: `${ele.lineHeight}`,
+              textStyle: `${ele.textStyle}`,
+              textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
+              fontFamily: `${ele.fontFamily}`,
+              textAlign: `${ele.textAlign}`,
+              shadow: `${ele.shadow}`
+            };
+          }
+        });
+        break;
+      case 'rect':
+        index = 2;
+        css = {
+          ...css,
+          color: item2.fill
+        };
+        break;
+      case 'image':
+        index = 3;
+        css = {
+          url: item2.url,
+          ...css,
+          mode: `${item2.mode}`
+        };
+        break;
+      case 'qrcode':
+        index = 4;
+        delete css.color;
+        delete css.background;
+        delete css.borderRadius;
+        delete css.borderWidth;
+        delete css.borderColor;
+        delete css.shadow;
+        css = {
+          url: item2.url,
+          ...css
+        };
+        break;
+      default:
+        break;
+    }
+    let currentOptionArr = _.cloneDeep(this.setState.currentOptionArr);
+    currentOptionArr[index].css = css;
     this.setState({
-      activeObjectOptions: {
-        top: '',
-        left: '',
-        width: '',
-        height: '',
-        rotate: '',
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#000000',
-        color: '',
-        background: '',
-        shadow: '',
-        text: '',
-        fontSize: '30',
-        fontWeight: 'bold',
-        maxLines: '',
-        lineHeight: '20',
-        padding: '10',
-        textDecoration: ['none', 'overline', 'underline', 'linethrough']
-      }
+      currentOptionArr
     });
   }
   showDrawer = () => {
@@ -1031,8 +1125,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     });
   };
   render() {
-    const currentOptionArr = this.currentOptionArr;
-    const { visible, visibleCode } = this.state;
+    const { visible, visibleCode, currentOptionArr } = this.state;
     return (
       <div id='main'>
         <div className='slide'>
@@ -1126,9 +1219,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                 <Icon type='plus' /> New account
               </Button>
               <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible} mask={false}>
-                {optionArr.map((item, i) => {
-                  let type = this.activeObject.type;
-                  if (type === 'group') {
+                {currentOptionArr.map((item, i) => {
+                  let type = this.activeObject.mytype;
+                  if (type === 'textGroup') {
                     type = 'text';
                   }
                   if (item.type === type) {
