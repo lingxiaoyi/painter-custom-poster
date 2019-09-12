@@ -62,7 +62,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    this.canvas_sprite = new fabric.Canvas('merge', this.currentOptionArr[0].css);
+    this.canvas_sprite = new fabric.Canvas('merge', this.state.currentOptionArr[0].css);
     let that = this;
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
@@ -114,10 +114,7 @@ class App extends React.Component {
       if (options.target) {
         that.activeObject = options.target;
         console.log('有对象被点击咯! ', options.target.type);
-        that.showDrawer();
-        that.activeObject.set({
-          radius: 150
-        });
+        that.handerEditObject();
       }
     });
     this.canvas_sprite.on('object:modified', function() {
@@ -181,7 +178,7 @@ class App extends React.Component {
     // Start editing
   }
   async addShape(index) {
-    const currentOptionArr = this.currentOptionArr;
+    const currentOptionArr = this.state.currentOptionArr;
     let { type } = currentOptionArr[index];
     let Shape;
     switch (type) {
@@ -206,7 +203,7 @@ class App extends React.Component {
   }
   async addTextObject(index) {
     const that = this;
-    const currentOptionArr = this.currentOptionArr;
+    const currentOptionArr = this.state.currentOptionArr;
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -353,7 +350,7 @@ class App extends React.Component {
     return Shape;
   }
   async addRectObject(index) {
-    const currentOptionArr = this.currentOptionArr;
+    const currentOptionArr = this.state.currentOptionArr;
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -393,7 +390,7 @@ class App extends React.Component {
     return Shape;
   }
   async addImageObject(index) {
-    const currentOptionArr = this.currentOptionArr;
+    const currentOptionArr = this.state.currentOptionArr;
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -495,7 +492,7 @@ class App extends React.Component {
     return Shape;
   }
   async addQrcodeObject(index) {
-    const currentOptionArr = this.currentOptionArr;
+    const currentOptionArr = this.state.currentOptionArr;
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -551,19 +548,19 @@ class App extends React.Component {
   }
   updateObject() {
     let type = this.activeObject.mytype;
-    this.canvas_sprite.remove(this.activeObject);
     switch (type) {
       case 'textGroup':
+        this.canvas_sprite.remove(this.activeObject);
         this.addShape(1);
         break;
       case 'rect':
-        this.addShape(2);
+        this.updateRectObject(2);
         break;
       case 'image':
-        this.addShape(3);
+        this.updateImageObject(3);
         break;
       case 'qrcode':
-        this.addShape(4);
+        this.updateQrcodeObject(4);
         break;
       default:
         break;
@@ -571,7 +568,7 @@ class App extends React.Component {
     this.canvas_sprite.renderAll();
   }
   updateRectObject(index) {
-    const currentOptionArr = this.currentOptionArr;
+    const currentOptionArr = this.state.currentOptionArr;
     let { css } = currentOptionArr[2];
     let {
       width,
@@ -610,7 +607,7 @@ class App extends React.Component {
     });
   }
   updateImageObject(index) {
-    const currentOptionArr = this.currentOptionArr;
+    const currentOptionArr = this.state.currentOptionArr;
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -710,7 +707,7 @@ class App extends React.Component {
     }
   }
   updateQrcodeObject(index) {
-    const currentOptionArr = this.currentOptionArr;
+    const currentOptionArr = this.state.currentOptionArr;
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -1010,12 +1007,11 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     }
   }
   handerEditObject() {
-    let canvas_sprite = this.canvas_sprite;
-    this.activeObject = canvas_sprite.getActiveObject();
+    //let canvas_sprite = this.canvas_sprite;
+    //this.activeObject = canvas_sprite.getActiveObject();
     this.showDrawer();
-    console.log('this.activeObject', this.activeObject);
+    console.log('this.activeObject', this.activeObject.type, this.activeObject.toObject());
     let type = this.activeObject.mytype;
-    this.canvas_sprite.remove(this.activeObject);
     let item2 = this.activeObject;
     //let oldScaleX = item2.oldScaleX || 1;
     let oldScaleY = item2.oldScaleY || 1;
@@ -1077,6 +1073,8 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         break;
       case 'image':
         index = 3;
+        delete css.color;
+        delete css.background;
         css = {
           url: item2.url,
           ...css,
@@ -1099,8 +1097,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
       default:
         break;
     }
-    let currentOptionArr = _.cloneDeep(this.setState.currentOptionArr);
+    let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
     currentOptionArr[index].css = css;
+    console.log('currentOptionArr[index].css', currentOptionArr[index].css);
     this.setState({
       currentOptionArr
     });
@@ -1234,7 +1233,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                           return (
                             <div className='row' key={i2}>
                               <div className='h3'>{item2} </div>
-                              {!_.isArray(item.css[item2]) && (
+                              {!_.isArray(optionArr[i].css[item2]) && (
                                 <Input
                                   defaultValue={item.css[item2]}
                                   onChange={event => {
@@ -1243,16 +1242,16 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                                   }}
                                 />
                               )}
-                              {_.isArray(item.css[item2]) && (
+                              {_.isArray(optionArr[i].css[item2]) && (
                                 <Select
-                                  defaultValue={item.css[item2][0]}
+                                  defaultValue={item.css[item2]}
                                   style={{ width: 120 }}
                                   onChange={value => {
                                     currentOptionArr[i].css[item2] = value;
                                     this.updateObject();
                                   }}
                                 >
-                                  {item.css[item2].map((item3, i3) => {
+                                  {optionArr[i].css[item2].map((item3, i3) => {
                                     return (
                                       <Option value={item3} key={i3}>
                                         {item3}
