@@ -86,9 +86,13 @@ class App extends React.Component {
         };
       });
 
-      that.setState({
-        currentOptionArr
-      });
+      that.setState(
+        {
+          currentOptionArr
+        },
+        () => {
+        }
+      );
     }, 100);
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
@@ -312,7 +316,7 @@ class App extends React.Component {
       for (let index = 0; index < maxLines; index++) {
         const element = textBox.textLines[index];
         if (index === maxLines - 1) {
-          text = text + element + '..';
+          text = text + element + '...';
         } else {
           text += element;
         }
@@ -320,6 +324,20 @@ class App extends React.Component {
       textBox.set({
         text
       });
+      if (textBox.textLines.length > maxLines) {
+        let text = '';
+        for (let index = 0; index < maxLines; index++) {
+          const element = textBox.textLines[index];
+          if (index === maxLines - 1) {
+            text = text + element.substring(0, element.length - 3) + '...';
+          } else {
+            text += element;
+          }
+        }
+        textBox.set({
+          text
+        });
+      }
     }
     let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2;
     width = textBox.width + padding * 2;
