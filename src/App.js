@@ -2,19 +2,19 @@ import React from 'react';
 import fabric from 'fabric';
 import _ from 'lodash';
 import jrQrcode from 'jr-qrcode';
-import optionArr from './optionArr';
-import './App.scss';
 import { Button, Input, message, Select, Modal, Icon, Drawer } from 'antd';
 import copy from 'copy-to-clipboard';
 import keydown, { ALL_KEYS } from 'react-keydown';
 import ReactMarkdown from 'react-markdown';
-var json = require('format-json');
-
+import json from 'format-json';
+import { optionArr, newOptionArr } from './optionArr';
+import './App.scss';
 const { Option } = Select;
 fabric = fabric.fabric;
 message.config({
   maxCount: 1
 });
+
 let QRErrorCorrectLevel = {
   L: 1,
   M: 0,
@@ -29,14 +29,7 @@ let _config = {
   undoFinishedStatus: 1,
   redoFinishedStatus: 1
 };
-//得到当前默认信息
-let newOptionArr = _.cloneDeep(optionArr);
-newOptionArr[1].css.textStyle = newOptionArr[1].css.textStyle[0];
-newOptionArr[1].css.textAlign = newOptionArr[1].css.textAlign[0];
-newOptionArr[1].css.fontWeight = newOptionArr[1].css.fontWeight[0];
-newOptionArr[1].css.textDecoration = newOptionArr[1].css.textDecoration[0];
-//newOptionArr[1].css.hasBorder = newOptionArr[1].css.hasBorder[0];
-newOptionArr[3].css.mode = newOptionArr[3].css.mode[0];
+
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -50,7 +43,6 @@ class App extends React.Component {
     this.state = {
       redoButtonStatus: '',
       undoButtonStatus: '',
-      activeObjectOptions: {}, //当前编辑对象的配置
       currentOptionArr: newOptionArr //当前可设置的数组的值
     };
     this.currentOptionArr = newOptionArr; //当前图像数据集合
@@ -64,6 +56,40 @@ class App extends React.Component {
   componentDidMount() {
     this.canvas_sprite = new fabric.Canvas('merge', this.state.currentOptionArr[0].css);
     let that = this;
+    let moveingFuc = _.throttle(function(e) {
+      let { top, left /* , width, height  */ } = e.target;
+      let currentOptionArr = _.cloneDeep(that.state.currentOptionArr);
+      currentOptionArr.forEach(item => {
+        item.css = {
+          ...item.css,
+          top: '' + top,
+          left: '' + left
+        };
+      });
+
+      that.setState({
+        currentOptionArr
+      });
+    }, 100);
+    let scalingFuc = _.throttle(function(e) {
+      let { top, left, width, height, scaleX, scaleY, rx, strokeWidth } = e.target;
+      let currentOptionArr = _.cloneDeep(that.state.currentOptionArr);
+      currentOptionArr.forEach(item => {
+        item.css = {
+          ...item.css,
+          top: '' + top,
+          left: '' + left,
+          width: `${width * scaleX}`,
+          height: `${height * scaleY}`,
+          borderRadius: `${rx * scaleY}`,
+          borderWidth: `${strokeWidth}`
+        };
+      });
+
+      that.setState({
+        currentOptionArr
+      });
+    }, 100);
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
       // if object is too big ignore
@@ -90,30 +116,39 @@ class App extends React.Component {
           obj.canvas.width - obj.getBoundingRect().width + obj.left - obj.getBoundingRect().left
         );
       }
-      /* let { top, left, width, height } = e.target;
-      let { optionArr } = that.state;
-      let optionArrIndex = optionArr.findIndex(function(item) {
-        return item.text === e.target.text;
-      });
-      let optionArrNew = JSON.parse(JSON.stringify(optionArr));
-      for (let index = 0; index < optionArrIndex; index++) {
-        left -= optionArrNew[index].frames * that.width;
-      }
-      optionArrNew[optionArrIndex] = {
-        ...optionArrNew[optionArrIndex],
-        textWidth: width,
-        textHeight: height,
-        left,
-        top
-      };
-      that.setState({
-        optionArr: optionArrNew
-      }); */
+      moveingFuc(e);
     });
-    this.canvas_sprite.on('mouse:down', function(options) {
-      if (options.target) {
-        that.activeObject = options.target;
-        console.log('有对象被点击咯! ', options.target.type);
+    this.canvas_sprite.on('object:scaling', function(e) {
+      var obj = e.target;
+      // if object is too big ignore
+      if (obj.currentHeight > obj.canvas.height || obj.currentWidth > obj.canvas.width) {
+        return;
+      }
+      obj.setCoords();
+      // top-left  corner
+      if (obj.getBoundingRect().top < 0 || obj.getBoundingRect().left < 0) {
+        obj.top = Math.max(obj.top, obj.top - obj.getBoundingRect().top);
+        obj.left = Math.max(obj.left, obj.left - obj.getBoundingRect().left);
+      }
+      // bot-right corner
+      if (
+        obj.getBoundingRect().top + obj.getBoundingRect().height > obj.canvas.height ||
+        obj.getBoundingRect().left + obj.getBoundingRect().width > obj.canvas.width
+      ) {
+        obj.top = Math.min(
+          obj.top,
+          obj.canvas.height - obj.getBoundingRect().height + obj.top - obj.getBoundingRect().top
+        );
+        obj.left = Math.min(
+          obj.left,
+          obj.canvas.width - obj.getBoundingRect().width + obj.left - obj.getBoundingRect().left
+        );
+      }
+      scalingFuc(e);
+    });
+    this.canvas_sprite.on('mouse:down', function(e) {
+      if (e.target) {
+        that.activeObject = e.target;
         that.handerEditObject();
       }
     });
@@ -207,7 +242,6 @@ class App extends React.Component {
     let { css } = currentOptionArr[index];
     let {
       width,
-      //height,
       text,
       color,
       fontSize,
@@ -241,26 +275,25 @@ class App extends React.Component {
     lineHeight = lineHeight / 1.08; //和painter调试得出的值
     let Shape;
     let config = {
-      width: width / 1,
-      //height: height / 1,
+      width, //文字的高度随行高
       fill: color,
       fontWeight,
-      left: left, //距离画布左侧的距离，单位是像素
+      left, //距离画布左侧的距离，单位是像素
       top /* : top + ((lineHeight - 1) * fontSize) / 2 */, //距离画布上边的距离
-      fontSize: fontSize / 1, //文字大小
+      fontSize, //文字大小
       fontFamily,
-      padding: padding / 1,
+      padding,
       [textDecoration]: true,
       //lockUniScaling: true, //只能等比缩放
       textAlign,
       textStyle,
       shadow,
-      angle: rotate / 1,
+      angle: rotate,
       splitByGrapheme: true, //文字换行
       zIndex: 2,
       lineHeight,
       editable: true,
-      maxLines: maxLines / 1,
+      maxLines: maxLines,
       textDecoration: textDecoration,
       lockScalingY: true
     };
@@ -271,7 +304,9 @@ class App extends React.Component {
         fill: 'rgba(0,0,0)'
       };
     }
+
     let textBox = new fabric.Textbox(text, config);
+    //通过最大行高计算高度,并删除多余文字,多出文字..表示,三个会换行
     if (textBox.textLines.length > maxLines) {
       let text = '';
       for (let index = 0; index < maxLines; index++) {
@@ -295,15 +330,14 @@ class App extends React.Component {
       height,
       left, //距离画布左侧的距离，单位是像素
       top,
-      padding: padding / 1,
-      rx: borderRadius / 1,
+      padding,
+      rx: borderRadius,
       //ry:borderRadius,
       strokeWidth: borderWidth / 1,
       stroke: borderColor,
       fill: background,
       angle: rotate,
       shadow,
-      backgroundColor: background,
       selectable: false
     });
     Shape = new fabric.Group([Rect, textBox], {
@@ -834,7 +868,7 @@ class App extends React.Component {
                 ...view.css,
                 left: `${item2.left + ele.padding}px`,
                 top: `${item2.top + ele.padding + ele.strokeWidth}px`,
-                background: `${ele.backgroundColor}`,
+                color: `${ele.backgroundColor}`,
                 borderRadius: `${ele.rx}px`,
                 borderWidth: `${ele.strokeWidth}px`,
                 borderColor: `${ele.stroke}`
@@ -1007,13 +1041,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     }
   }
   handerEditObject() {
-    //let canvas_sprite = this.canvas_sprite;
-    //this.activeObject = canvas_sprite.getActiveObject();
     this.showDrawer();
-    console.log('this.activeObject', this.activeObject.type, this.activeObject.toObject());
     let type = this.activeObject.mytype;
     let item2 = this.activeObject;
-    //let oldScaleX = item2.oldScaleX || 1;
     let oldScaleY = item2.oldScaleY || 1;
     let css = {
       color: `${item2.color}`,
@@ -1037,18 +1067,15 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
           if (ele.type === 'rect') {
             css = {
               ...css,
-              background: `${ele.backgroundColor}`,
+              background: `${ele.fill}`,
               borderRadius: `${ele.rx}`,
               borderWidth: `${ele.strokeWidth}`,
               borderColor: `${ele.stroke}`
             };
           } else {
             css = {
+              text: `${ele.text}`,
               ...css,
-              background: `${ele.backgroundColor}`,
-              borderRadius: `${ele.rx}`,
-              borderWidth: `${ele.strokeWidth}`,
-              borderColor: `${ele.stroke}`,
               color: ele.fill,
               padding: `${ele.padding}`,
               fontSize: `${ele.fontSize}`,
@@ -1066,9 +1093,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         break;
       case 'rect':
         index = 2;
+        delete css.color;
         css = {
-          ...css,
-          color: item2.fill
+          ...css
         };
         break;
       case 'image':
@@ -1099,7 +1126,6 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     }
     let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
     currentOptionArr[index].css = css;
-    console.log('currentOptionArr[index].css', currentOptionArr[index].css);
     this.setState({
       currentOptionArr
     });
@@ -1236,19 +1262,37 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                               {!_.isArray(optionArr[i].css[item2]) && (
                                 <Input
                                   defaultValue={item.css[item2]}
+                                  value={item.css[item2]}
                                   onChange={event => {
+                                    let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
                                     currentOptionArr[i].css[item2] = event.target.value;
-                                    this.updateObject();
+                                    this.setState(
+                                      {
+                                        currentOptionArr
+                                      },
+                                      () => {
+                                        this.updateObject();
+                                      }
+                                    );
                                   }}
                                 />
                               )}
                               {_.isArray(optionArr[i].css[item2]) && (
                                 <Select
                                   defaultValue={item.css[item2]}
+                                  value={item.css[item2]}
                                   style={{ width: 120 }}
                                   onChange={value => {
+                                    let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
                                     currentOptionArr[i].css[item2] = value;
-                                    this.updateObject();
+                                    this.setState(
+                                      {
+                                        currentOptionArr
+                                      },
+                                      () => {
+                                        this.updateObject();
+                                      }
+                                    );
                                   }}
                                 >
                                   {optionArr[i].css[item2].map((item3, i3) => {

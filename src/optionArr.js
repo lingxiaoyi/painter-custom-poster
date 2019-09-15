@@ -1,4 +1,5 @@
-export default [
+import _ from 'lodash';
+let optionArr = [
   {
     type: 'canvas',
     css: {
@@ -86,3 +87,14 @@ export default [
     }
   }
 ];
+
+//得到当前默认信息
+let newOptionArr = _.cloneDeep(optionArr);
+newOptionArr[1].css.textStyle = newOptionArr[1].css.textStyle[0];
+newOptionArr[1].css.textAlign = newOptionArr[1].css.textAlign[0];
+newOptionArr[1].css.fontWeight = newOptionArr[1].css.fontWeight[0];
+newOptionArr[1].css.textDecoration = newOptionArr[1].css.textDecoration[0];
+newOptionArr[3].css.mode = newOptionArr[3].css.mode[0];
+export {
+  optionArr, newOptionArr
+} 
