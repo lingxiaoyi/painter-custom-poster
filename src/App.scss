@@ -31,7 +31,7 @@ input {
 }
 #main {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   #merge {
     width: 100%;
   }
@@ -53,10 +53,9 @@ input {
     }
   }
   .option {
-    display: flex;
-    justify-content: flex-start;
     margin-top: 10px;
     .option-li {
+      margin-top: 10px;
       border: 1px solid #eee;
       padding: 0 20px 10px;
       margin-left: 10px;
@@ -76,14 +75,9 @@ input {
         margin-right: 10px;
       }
       .ant-input {
-        width: 150px;
+        width: 200px;
         min-width: auto;
       }
     }
-  }
-}
-.drawer-zj {
-  .ant-drawer-mask {
-    background: rgba(0, 0, 0, 0);
   }
 }

@@ -2,6 +2,7 @@ import _ from 'lodash';
 let optionArr = [
   {
     type: 'canvas',
+    name: '画布',
     css: {
       width: '654',
       height: '1000',
@@ -95,6 +96,4 @@ newOptionArr[1].css.textAlign = newOptionArr[1].css.textAlign[0];
 newOptionArr[1].css.fontWeight = newOptionArr[1].css.fontWeight[0];
 newOptionArr[1].css.textDecoration = newOptionArr[1].css.textDecoration[0];
 newOptionArr[3].css.mode = newOptionArr[3].css.mode[0];
-export {
-  optionArr, newOptionArr
-} 
+export { optionArr, newOptionArr };

@@ -2,7 +2,7 @@ import React from 'react';
 import fabric from 'fabric';
 import _ from 'lodash';
 import jrQrcode from 'jr-qrcode';
-import { Button, Input, message, Select, Modal, Icon, Drawer } from 'antd';
+import { Button, Input, message, Select, Modal, Drawer, Radio } from 'antd';
 import copy from 'copy-to-clipboard';
 import keydown, { ALL_KEYS } from 'react-keydown';
 import ReactMarkdown from 'react-markdown';
@@ -43,7 +43,8 @@ class App extends React.Component {
     this.state = {
       redoButtonStatus: '',
       undoButtonStatus: '',
-      currentOptionArr: newOptionArr //当前可设置的数组的值
+      currentOptionArr: newOptionArr, //当前可设置的数组的值
+      currentObjectType: 'text'
     };
     this.currentOptionArr = newOptionArr; //当前图像数据集合
     this.views = []; //所有元素的信息
@@ -824,7 +825,7 @@ class App extends React.Component {
       mytype: 'qrcode'
     });
   }
-  
+
   handerEditObject() {
     this.setState({
       visible: true
@@ -1189,7 +1190,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     }
   }
   render() {
-    const { visible, visibleCode, currentOptionArr } = this.state;
+    const { visible, visibleCode, currentOptionArr, currentObjectType } = this.state;
     return (
       <div id='main'>
         <div className='slide'>
@@ -1222,52 +1223,71 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
             <div className='code' />
           </div>
           <div className='option'>
-            {optionArr.map((item, i) => {
-              if (i === 0) return null;
-              return (
-                <div key={i} className='option-li'>
-                  <div className='row'>
-                    <div className='h3'>{item.name} </div>
-                    <div className='btn'>
-                      <Button type='primary' onClick={this.addShape.bind(this, i)}>
-                        添加
-                      </Button>
-                    </div>
-                  </div>
-                  {Object.keys(item.css).map((item2, i2) => {
+            <div className='box'>
+              <div className='btns'>
+                <Radio.Group
+                  value={currentObjectType}
+                  onChange={e => {
+                    this.setState({ currentObjectType: e.target.value });
+                  }}
+                >
+                  {optionArr.map((item, i) => {
                     return (
-                      <div className='row' key={i2}>
-                        <div className='h3'>{item2} </div>
-                        {!_.isArray(item.css[item2]) && (
-                          <Input
-                            defaultValue={item.css[item2]}
-                            onChange={event => {
-                              currentOptionArr[i].css[item2] = event.target.value;
-                            }}
-                          />
-                        )}
-                        {_.isArray(item.css[item2]) && (
-                          <Select
-                            defaultValue={item.css[item2][0]}
-                            style={{ width: 120 }}
-                            onChange={value => {
-                              currentOptionArr[i].css[item2] = value;
-                            }}
-                          >
-                            {item.css[item2].map((item3, i3) => {
-                              return (
-                                <Option value={item3} key={i3}>
-                                  {item3}
-                                </Option>
-                              );
-                            })}
-                          </Select>
-                        )}
-                      </div>
+                      <Radio.Button value={item.type} key={i}>
+                        {item.name}
+                      </Radio.Button>
                     );
                   })}
-                </div>
-              );
+                </Radio.Group>
+              </div>
+            </div>
+            {optionArr.map((item, i) => {
+              if (item.type === currentObjectType) {
+                return (
+                  <div key={i} className='option-li'>
+                    <div className='row'>
+                      <div className='h3'>{item.name} </div>
+                      <div className='btn'>
+                        <Button type='primary' onClick={this.addShape.bind(this, i)}>
+                          添加
+                        </Button>
+                      </div>
+                    </div>
+                    {Object.keys(item.css).map((item2, i2) => {
+                      return (
+                        <div className='row' key={i2}>
+                          <div className='h3'>{item2} </div>
+                          {!_.isArray(item.css[item2]) && (
+                            <Input
+                              defaultValue={item.css[item2]}
+                              onChange={event => {
+                                currentOptionArr[i].css[item2] = event.target.value;
+                              }}
+                            />
+                          )}
+                          {_.isArray(item.css[item2]) && (
+                            <Select
+                              defaultValue={item.css[item2][0]}
+                              style={{ width: 120 }}
+                              onChange={value => {
+                                currentOptionArr[i].css[item2] = value;
+                              }}
+                            >
+                              {item.css[item2].map((item3, i3) => {
+                                return (
+                                  <Option value={item3} key={i3}>
+                                    {item3}
+                                  </Option>
+                                );
+                              })}
+                            </Select>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              }
             })}
           </div>
         </div>
