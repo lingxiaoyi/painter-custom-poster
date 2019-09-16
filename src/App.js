@@ -73,7 +73,8 @@ class App extends React.Component {
       });
     }, 100);
     let scalingFuc = _.throttle(function(e) {
-      let { top, left, width, height, scaleX, scaleY, rx, strokeWidth } = e.target;
+      let { top, left, width, height, scaleX, scaleY, rx, strokeWidth, oldScaleY } = e.target;
+      oldScaleY = oldScaleY || 1;
       let currentOptionArr = _.cloneDeep(that.state.currentOptionArr);
       currentOptionArr.forEach(item => {
         item.css = {
@@ -82,7 +83,7 @@ class App extends React.Component {
           left: '' + left,
           width: `${width * scaleX}`,
           height: `${height * scaleY}`,
-          borderRadius: `${rx * scaleY}`,
+          borderRadius: `${rx * (scaleY / oldScaleY)}`,
           borderWidth: `${strokeWidth}`
         };
       });
@@ -237,9 +238,15 @@ class App extends React.Component {
     this.activeObject = Shape;
     this.canvas_sprite.add(Shape);
   }
-  async addTextObject(index) {
+  async addTextObject(index, status) {
     const that = this;
-    const currentOptionArr = this.state.currentOptionArr;
+    let currentOptionArr;
+    if (status === 'update') {
+      currentOptionArr = this.state.currentOptionArr;
+    } else {
+      currentOptionArr = this.currentOptionArr;
+    }
+
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -296,7 +303,8 @@ class App extends React.Component {
       editable: true,
       maxLines: maxLines,
       textDecoration: textDecoration,
-      lockScalingY: true
+      lockScalingY: true,
+      centeredRotation: true
     };
     if (textStyle === 'stroke') {
       config = {
@@ -353,7 +361,8 @@ class App extends React.Component {
       fill: background,
       angle: rotate,
       shadow,
-      selectable: false
+      selectable: false,
+      centeredRotation: true
     });
     Shape = new fabric.Group([Rect, textBox], {
       width,
@@ -363,7 +372,8 @@ class App extends React.Component {
       angle: rotate,
       mytype: 'textGroup',
       lockScalingY: true,
-      oldText: text
+      oldText: text,
+      centeredRotation: true
     });
     Shape.on('scaling', function(e) {
       let obj = this;
@@ -433,7 +443,7 @@ class App extends React.Component {
     return Shape;
   }
   async addRectObject(index) {
-    const currentOptionArr = this.state.currentOptionArr;
+    const currentOptionArr = this.currentOptionArr;
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -466,14 +476,14 @@ class App extends React.Component {
       stroke: borderColor,
       fill: background,
       //align,
-      rotate,
+      angle: rotate,
       shadow,
       mytype: 'rect'
     });
     return Shape;
   }
   async addImageObject(index) {
-    const currentOptionArr = this.state.currentOptionArr;
+    const currentOptionArr = this.currentOptionArr;
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -504,8 +514,8 @@ class App extends React.Component {
 
     Shape.set({
       url,
-      left: left / 1,
-      top: top / 1,
+      left: left / 1 /* + width / 2 */,
+      top: top / 1 /*  + height / 2 */,
       rx: borderRadius / 1,
       ry: borderRadius / 1,
       strokeWidth: borderWidth / 1,
@@ -515,7 +525,9 @@ class App extends React.Component {
       angle: rotate / 1,
       mode,
       shadow,
-      mytype: 'image'
+      mytype: 'image' /* ,
+      originX: 'center',
+      originY: 'center' */
     });
 
     if (mode === 'scaleToFill') {
@@ -575,7 +587,7 @@ class App extends React.Component {
     return Shape;
   }
   async addQrcodeObject(index) {
-    const currentOptionArr = this.state.currentOptionArr;
+    const currentOptionArr = this.currentOptionArr;
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -634,7 +646,7 @@ class App extends React.Component {
     switch (type) {
       case 'textGroup':
         this.canvas_sprite.remove(this.activeObject);
-        this.addShape(1);
+        this.addShape(1, 'update');
         break;
       case 'rect':
         this.updateRectObject(2);
@@ -975,30 +987,7 @@ class App extends React.Component {
               padding: `${item2.padding}rpx` */
           }
         };
-      } /*  else if (type === 'textbox') {
-          delete css.borderRadius;
-          delete css.borderWidth;
-          delete css.borderColor;
-          view = {
-            type: 'text',
-            text: `${item2.text}`,
-            css: {
-              ...css,
-              color: item2.fill,
-              padding: `${item2.padding}px`,
-              fontSize: `${item2.fontSize}px`,
-              fontWeight: `${item2.fontWeight}`,
-              maxLines: `${item2.maxLines}`,
-              lineHeight: `${(item2.lineHeight / 1) * item2.fontSize}px`,
-              textStyle: `${item2.textStyle}`,
-              textDecoration: `${item2.textDecoration}`,
-              fontFamily: `${item2.fontFamily}`,
-              textAlign: `${item2.textAlign}`
-            }
-          };
-        }  */ else if (
-        type === 'textGroup'
-      ) {
+      } else if (type === 'textGroup') {
         item2._objects.forEach(ele => {
           if (ele.type === 'rect') {
             view = {
@@ -1009,7 +998,7 @@ class App extends React.Component {
                 ...view.css,
                 left: `${item2.left + ele.padding}px`,
                 top: `${item2.top + ele.padding + ele.strokeWidth}px`,
-                color: `${ele.backgroundColor}`,
+                background: `${ele.fill}`,
                 borderRadius: `${ele.rx}px`,
                 borderWidth: `${ele.strokeWidth}px`,
                 borderColor: `${ele.stroke}`
@@ -1247,13 +1236,18 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                   <div key={i} className='option-li'>
                     <div className='row'>
                       <div className='h3'>{item.name} </div>
-                      <div className='btn'>
-                        <Button type='primary' onClick={this.addShape.bind(this, i)}>
-                          添加
-                        </Button>
-                      </div>
+                      {item.type !== 'canvas' && (
+                        <div className='btn'>
+                          <Button type='primary' onClick={this.addShape.bind(this, i)}>
+                            添加
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     {Object.keys(item.css).map((item2, i2) => {
+                      if (item2 === 'rotate') {
+                        return null;
+                      }
                       return (
                         <div className='row' key={i2}>
                           <div className='h3'>{item2} </div>
@@ -1261,7 +1255,17 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                             <Input
                               defaultValue={item.css[item2]}
                               onChange={event => {
-                                currentOptionArr[i].css[item2] = event.target.value;
+                                this.currentOptionArr[i].css[item2] = event.target.value;
+                                if (item.type === 'canvas') {
+                                  if (item2 === 'width') {
+                                    this.canvas_sprite.setWidth(event.target.value);
+                                  } else if (item2 === 'height') {
+                                    this.canvas_sprite.setHeight(event.target.value);
+                                  } else if (item2 === 'backgroundColor') {
+                                    this.canvas_sprite.setBackgroundColor(event.target.value);
+                                    this.canvas_sprite.renderAll();
+                                  }
+                                }
                               }}
                             />
                           )}
@@ -1270,7 +1274,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                               defaultValue={item.css[item2][0]}
                               style={{ width: 120 }}
                               onChange={value => {
-                                currentOptionArr[i].css[item2] = value;
+                                this.currentOptionArr[i].css[item2] = value;
                               }}
                             >
                               {item.css[item2].map((item3, i3) => {
@@ -1293,7 +1297,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         </div>
         {
           <div className='edit-modal'>
-            <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible} mask={false}>
+            <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible} mask={false} placement='left'>
               {currentOptionArr.map((item, i) => {
                 let type = this.activeObject.mytype;
                 if (type === 'textGroup') {
@@ -1306,6 +1310,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                         <div className='h3'>{item.name} </div>
                       </div>
                       {Object.keys(item.css).map((item2, i2) => {
+                        if (item2 === 'rotate') {
+                          return null;
+                        }
                         return (
                           <div className='row' key={i2}>
                             <div className='h3'>{item2} </div>
