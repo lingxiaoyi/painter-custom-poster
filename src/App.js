@@ -86,13 +86,9 @@ class App extends React.Component {
         };
       });
 
-      that.setState(
-        {
-          currentOptionArr
-        },
-        () => {
-        }
-      );
+      that.setState({
+        currentOptionArr
+      });
     }, 100);
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
@@ -364,7 +360,9 @@ class App extends React.Component {
       left, //距离画布左侧的距离，单位是像素
       top,
       angle: rotate,
-      mytype: 'textGroup'
+      mytype: 'textGroup',
+      lockScalingY: true,
+      oldText: text
     });
     Shape.on('scaling', function(e) {
       let obj = this;
@@ -372,6 +370,7 @@ class App extends React.Component {
       let height = obj.height;
       let w = obj.width * obj.scaleX;
       let h = obj.height * obj.scaleY;
+      let oldText = obj.oldText;
       Rect.set({
         left: -(w - width / 2),
         top: -(h - height / 2),
@@ -387,8 +386,39 @@ class App extends React.Component {
         height,
         fontSize,
         scaleX: 1,
-        scaleY: 1
+        scaleY: 1,
+        text: oldText
       });
+      //控制行内文字
+      if (textBox.textLines.length > maxLines) {
+        let text = '';
+        for (let index = 0; index < maxLines; index++) {
+          const element = textBox.textLines[index];
+          if (index === maxLines - 1) {
+            text = text + element + '...';
+          } else {
+            text += element;
+          }
+        }
+        textBox.set({
+          text
+        });
+
+        if (textBox.textLines.length > maxLines) {
+          let text = '';
+          for (let index = 0; index < maxLines; index++) {
+            const element = textBox.textLines[index];
+            if (index === maxLines - 1) {
+              text = text + element.substring(0, element.length - 3) + '...';
+            } else {
+              text += element;
+            }
+          }
+          textBox.set({
+            text
+          });
+        }
+      }
       obj.set({
         height: h,
         width: w,
@@ -794,14 +824,106 @@ class App extends React.Component {
       mytype: 'qrcode'
     });
   }
-  clearCanvas() {
-    this.rects.forEach(function(item, i) {
-      item.remove();
+  
+  handerEditObject() {
+    this.setState({
+      visible: true
     });
-    this.texts.forEach(function(item, i) {
-      item.remove();
+    let type = this.activeObject.mytype;
+    let item2 = this.activeObject;
+    let oldScaleY = item2.oldScaleY || 1;
+    let css = {
+      color: `${item2.color}`,
+      background: `${item2.fill}`,
+      width: `${item2.width * item2.scaleX}`,
+      height: `${item2.height * item2.scaleY}`,
+      top: `${item2.top}`,
+      left: `${item2.left}`,
+      rotate: `${item2.angle}`,
+      borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}`,
+      borderWidth: `${item2.strokeWidth}`,
+      borderColor: `${item2.stroke}`,
+      //align: `${item2.align}`,
+      shadow: `${item2.shadow}`
+    };
+    let index = '';
+    switch (type) {
+      case 'textGroup':
+        index = 1;
+        item2._objects.forEach(ele => {
+          if (ele.type === 'rect') {
+            delete css.height;
+            css = {
+              ...css,
+              background: `${ele.fill}`,
+              borderRadius: `${ele.rx}`,
+              borderWidth: `${ele.strokeWidth}`,
+              borderColor: `${ele.stroke}`
+            };
+          } else {
+            delete css.height;
+            css = {
+              text: `${item2.oldText}`,
+              maxLines: `${ele.maxLines}`,
+              ...css,
+              color: ele.fill,
+              padding: `${ele.padding}`,
+              fontSize: `${ele.fontSize}`,
+              fontWeight: `${ele.fontWeight}`,
+              lineHeight: `${ele.lineHeight}`,
+              textStyle: `${ele.textStyle}`,
+              textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
+              fontFamily: `${ele.fontFamily}`,
+              textAlign: `${ele.textAlign}`,
+              shadow: `${ele.shadow}`
+            };
+          }
+        });
+        break;
+      case 'rect':
+        index = 2;
+        delete css.color;
+        css = {
+          ...css
+        };
+        break;
+      case 'image':
+        index = 3;
+        delete css.color;
+        delete css.background;
+        css = {
+          url: item2.url,
+          ...css,
+          mode: `${item2.mode}`
+        };
+        break;
+      case 'qrcode':
+        index = 4;
+        delete css.color;
+        delete css.background;
+        delete css.borderRadius;
+        delete css.borderWidth;
+        delete css.borderColor;
+        delete css.shadow;
+        css = {
+          url: item2.url,
+          ...css
+        };
+        break;
+      default:
+        break;
+    }
+    let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
+    currentOptionArr[index].css = css;
+    this.setState({
+      currentOptionArr
     });
   }
+  onClose = () => {
+    this.setState({
+      visible: false
+    });
+  };
   generateCode() {
     let canvas_sprite = this.canvas_sprite;
     this.views = [];
@@ -950,6 +1072,14 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     `;
     console.log('finallObj', json.plain(this.finallObj).replace(/px/g, 'rpx'));
   }
+  clearCanvas() {
+    this.rects.forEach(function(item, i) {
+      item.remove();
+    });
+    this.texts.forEach(function(item, i) {
+      item.remove();
+    });
+  }
   copyCode() {
     this.generateCode();
     if (copy(this.miniCode)) {
@@ -1058,115 +1188,6 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
       }
     }
   }
-  handerEditObject() {
-    this.showDrawer();
-    let type = this.activeObject.mytype;
-    let item2 = this.activeObject;
-    let oldScaleY = item2.oldScaleY || 1;
-    let css = {
-      color: `${item2.color}`,
-      background: `${item2.fill}`,
-      width: `${item2.width * item2.scaleX}`,
-      height: `${item2.height * item2.scaleY}`,
-      top: `${item2.top}`,
-      left: `${item2.left}`,
-      rotate: `${item2.angle}`,
-      borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}`,
-      borderWidth: `${item2.strokeWidth}`,
-      borderColor: `${item2.stroke}`,
-      //align: `${item2.align}`,
-      shadow: `${item2.shadow}`
-    };
-    let index = '';
-    switch (type) {
-      case 'textGroup':
-        index = 1;
-        item2._objects.forEach(ele => {
-          if (ele.type === 'rect') {
-            css = {
-              ...css,
-              background: `${ele.fill}`,
-              borderRadius: `${ele.rx}`,
-              borderWidth: `${ele.strokeWidth}`,
-              borderColor: `${ele.stroke}`
-            };
-          } else {
-            css = {
-              text: `${ele.text}`,
-              ...css,
-              color: ele.fill,
-              padding: `${ele.padding}`,
-              fontSize: `${ele.fontSize}`,
-              fontWeight: `${ele.fontWeight}`,
-              maxLines: `${ele.maxLines}`,
-              lineHeight: `${ele.lineHeight}`,
-              textStyle: `${ele.textStyle}`,
-              textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
-              fontFamily: `${ele.fontFamily}`,
-              textAlign: `${ele.textAlign}`,
-              shadow: `${ele.shadow}`
-            };
-          }
-        });
-        break;
-      case 'rect':
-        index = 2;
-        delete css.color;
-        css = {
-          ...css
-        };
-        break;
-      case 'image':
-        index = 3;
-        delete css.color;
-        delete css.background;
-        css = {
-          url: item2.url,
-          ...css,
-          mode: `${item2.mode}`
-        };
-        break;
-      case 'qrcode':
-        index = 4;
-        delete css.color;
-        delete css.background;
-        delete css.borderRadius;
-        delete css.borderWidth;
-        delete css.borderColor;
-        delete css.shadow;
-        css = {
-          url: item2.url,
-          ...css
-        };
-        break;
-      default:
-        break;
-    }
-    let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
-    currentOptionArr[index].css = css;
-    this.setState({
-      currentOptionArr
-    });
-  }
-  showDrawer = () => {
-    this.setState({
-      visible: true
-    });
-  };
-
-  onClose = () => {
-    this.setState({
-      visible: false
-    });
-  };
-  handleSubmit = e => {
-    e.preventDefault();
-    this.props.form.validateFields((err, values) => {
-      if (!err) {
-        console.log('Received values of form: ', values);
-      }
-    });
-  };
   render() {
     const { visible, visibleCode, currentOptionArr } = this.state;
     return (
@@ -1177,21 +1198,16 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         <div className='main-container'>
           <div className='box'>
             <div className='btns'>
-              <div className='btn'>
+              {/* <div className='btn'>
                 <Button type='primary' onClick={this.handerUndo}>
-                  Undo
+                  撤销
                 </Button>
               </div>
               <div className='btn'>
                 <Button type='primary' onClick={this.handerRedo}>
-                  Redo
+                  恢复
                 </Button>
-              </div>
-              <div className='btn'>
-                <Button type='primary' onClick={this.handerEditObject}>
-                  编辑对象
-                </Button>
-              </div>
+              </div> */}
               <div className='btn'>
                 <Button type='primary' onClick={this.copyCode}>
                   复制代码
@@ -1257,80 +1273,75 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         </div>
         {
           <div className='edit-modal'>
-            <div>
-              <Button type='primary' onClick={this.showDrawer}>
-                <Icon type='plus' /> New account
-              </Button>
-              <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible} mask={false}>
-                {currentOptionArr.map((item, i) => {
-                  let type = this.activeObject.mytype;
-                  if (type === 'textGroup') {
-                    type = 'text';
-                  }
-                  if (item.type === type) {
-                    return (
-                      <div key={i} className='option-li'>
-                        <div className='row'>
-                          <div className='h3'>{item.name} </div>
-                        </div>
-                        {Object.keys(item.css).map((item2, i2) => {
-                          return (
-                            <div className='row' key={i2}>
-                              <div className='h3'>{item2} </div>
-                              {!_.isArray(optionArr[i].css[item2]) && (
-                                <Input
-                                  defaultValue={item.css[item2]}
-                                  value={item.css[item2]}
-                                  onChange={event => {
-                                    let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
-                                    currentOptionArr[i].css[item2] = event.target.value;
-                                    this.setState(
-                                      {
-                                        currentOptionArr
-                                      },
-                                      () => {
-                                        this.updateObject();
-                                      }
-                                    );
-                                  }}
-                                />
-                              )}
-                              {_.isArray(optionArr[i].css[item2]) && (
-                                <Select
-                                  defaultValue={item.css[item2]}
-                                  value={item.css[item2]}
-                                  style={{ width: 120 }}
-                                  onChange={value => {
-                                    let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
-                                    currentOptionArr[i].css[item2] = value;
-                                    this.setState(
-                                      {
-                                        currentOptionArr
-                                      },
-                                      () => {
-                                        this.updateObject();
-                                      }
-                                    );
-                                  }}
-                                >
-                                  {optionArr[i].css[item2].map((item3, i3) => {
-                                    return (
-                                      <Option value={item3} key={i3}>
-                                        {item3}
-                                      </Option>
-                                    );
-                                  })}
-                                </Select>
-                              )}
-                            </div>
-                          );
-                        })}
+            <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible} mask={false}>
+              {currentOptionArr.map((item, i) => {
+                let type = this.activeObject.mytype;
+                if (type === 'textGroup') {
+                  type = 'text';
+                }
+                if (item.type === type) {
+                  return (
+                    <div key={i} className='option-li'>
+                      <div className='row'>
+                        <div className='h3'>{item.name} </div>
                       </div>
-                    );
-                  }
-                })}
-              </Drawer>
-            </div>
+                      {Object.keys(item.css).map((item2, i2) => {
+                        return (
+                          <div className='row' key={i2}>
+                            <div className='h3'>{item2} </div>
+                            {!_.isArray(optionArr[i].css[item2]) && (
+                              <Input
+                                defaultValue={item.css[item2]}
+                                value={item.css[item2]}
+                                onChange={event => {
+                                  let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
+                                  currentOptionArr[i].css[item2] = event.target.value;
+                                  this.setState(
+                                    {
+                                      currentOptionArr
+                                    },
+                                    () => {
+                                      this.updateObject();
+                                    }
+                                  );
+                                }}
+                              />
+                            )}
+                            {_.isArray(optionArr[i].css[item2]) && (
+                              <Select
+                                defaultValue={item.css[item2]}
+                                value={item.css[item2]}
+                                style={{ width: 120 }}
+                                onChange={value => {
+                                  let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
+                                  currentOptionArr[i].css[item2] = value;
+                                  this.setState(
+                                    {
+                                      currentOptionArr
+                                    },
+                                    () => {
+                                      this.updateObject();
+                                    }
+                                  );
+                                }}
+                              >
+                                {optionArr[i].css[item2].map((item3, i3) => {
+                                  return (
+                                    <Option value={item3} key={i3}>
+                                      {item3}
+                                    </Option>
+                                  );
+                                })}
+                              </Select>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+              })}
+            </Drawer>
           </div>
         }
         <Modal
