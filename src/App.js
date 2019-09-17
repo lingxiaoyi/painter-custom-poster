@@ -9,8 +9,10 @@ import ReactMarkdown from 'react-markdown';
 import json from 'format-json';
 import { optionArr, newOptionArr } from './optionArr';
 import './App.scss';
+import importCodeJson from './importCodeJson';
 var FontFaceObserver = require('fontfaceobserver');
 const { Option } = Select;
+const { TextArea } = Input;
 fabric = fabric.fabric;
 message.config({
   maxCount: 1
@@ -39,9 +41,11 @@ class App extends React.Component {
     this.copyCode = this.copyCode.bind(this);
     this.viewCode = this.viewCode.bind(this);
     this.exportCode = this.exportCode.bind(this);
+    this.importCode = this.importCode.bind(this);
     this.handerUndo = this.handerUndo.bind(this);
     this.handerRedo = this.handerRedo.bind(this);
     this.handerEditObject = this.handerEditObject.bind(this);
+    this.confirmImportCode = this.confirmImportCode.bind(this);
     this.state = {
       redoButtonStatus: '',
       undoButtonStatus: '',
@@ -54,6 +58,7 @@ class App extends React.Component {
     this.height = 300; //固定死
     this.width = 0; //通过实际宽高比计算出来的
     this.activeObject = {};
+    this.importCodeJson = importCodeJson;
   }
 
   componentDidMount() {
@@ -62,6 +67,7 @@ class App extends React.Component {
     let throttleHanderEditObject = _.throttle(that.handerEditObject, 100);
     var font = new FontFaceObserver('webfont');
     font.load();
+    this.confirmImportCode();
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
       // if object is too big ignore
@@ -132,7 +138,7 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(4);
+    this.addShape(2);
     /* this.addShape(2);
     this.addShape(3);
     this.addShape(4); */
@@ -463,6 +469,13 @@ class App extends React.Component {
       mytype: 'rect'
     };
     let Shape = new fabric.Rect(config);
+    Shape.toObject = (function(toObject) {
+      return function() {
+        return fabric.util.object.extend(toObject.call(this), {
+          mytype: 'rect'
+        });
+      };
+    })(Shape.toObject);
     return Shape;
   }
   async addImageObject(index, action) {
@@ -572,6 +585,18 @@ class App extends React.Component {
       });
     }
 
+    Shape.toObject = (function(toObject) {
+      return function() {
+        return fabric.util.object.extend(toObject.call(this), {
+          mytype: 'image',
+          mode,
+          url,
+          rx: borderRadius / 1,
+          oldScaleX: width / imgWidth,
+          oldScaleY: height / imgHeight
+        });
+      };
+    })(Shape.toObject);
     return Shape;
   }
   async addQrcodeObject(index, action) {
@@ -917,6 +942,21 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
   }
   exportCode() {
     console.log('exportCode', _config.canvasState[_config.canvasState.length - 1]);
+    copy('export default' + _config.canvasState[_config.canvasState.length - 1]);
+  }
+  importCode() {
+    this.setState({
+      visibleImportCode: true
+    });
+  }
+  confirmImportCode() {
+    let canvas_sprite = this.canvas_sprite;
+    canvas_sprite.loadFromJSON(this.importCodeJson, () => {
+      this.setState({
+        visibleImportCode: false
+      });
+      message.success(`画面加载成功`, 2);
+    });
   }
   updateCanvasState() {
     let that = this;
@@ -1013,7 +1053,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     }
   }
   render() {
-    const { visible, visibleCode, currentOptionArr, currentObjectType } = this.state;
+    const { visible, visibleCode, visibleImportCode, currentOptionArr, currentObjectType } = this.state;
     return (
       <div id='main'>
         <div className='slide'>
@@ -1045,6 +1085,11 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
               <div className='btn'>
                 <Button type='primary' onClick={this.exportCode}>
                   导出json
+                </Button>
+              </div>
+              <div className='btn'>
+                <Button type='primary' onClick={this.importCode}>
+                  导入json
                 </Button>
               </div>
             </div>
@@ -1228,6 +1273,28 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
             source={`\`\`\`
 ${this.miniCode}
           `}
+          />
+        </Modal>
+        <Modal
+          title='导入代码'
+          visible={visibleImportCode}
+          onCancel={() => {
+            this.setState({
+              visibleImportCode: false
+            });
+          }}
+          footer={[
+            <Button key='submit' type='primary' onClick={this.confirmImportCode}>
+              确定
+            </Button>
+          ]}
+        >
+          <TextArea
+            placeholder='请将代码复制进来'
+            autosize={{ minRows: 10, maxRows: 6 }}
+            onChange={e => {
+              this.importCodeJson = e.target.value;
+            }}
           />
         </Modal>
       </div>
