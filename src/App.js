@@ -289,8 +289,8 @@ class App extends React.Component {
       width, //文字的高度随行高
       fill: color,
       fontWeight,
-      //left, //距离画布左侧的距离，单位是像素
-      //top /* : top + ((lineHeight - 1) * fontSize) / 2 */, //距离画布上边的距离
+      left: left, //距离画布左侧的距离，单位是像素
+      top: top,
       fontSize, //文字大小
       fontFamily,
       padding,
@@ -350,6 +350,9 @@ class App extends React.Component {
     width = textBox.width + padding * 2;
     left = textBox.left - padding;
     top = css.top - padding;
+   /*  textBox.set({
+      top: top + height / 2
+    }); */
     let Rect = new fabric.Rect({
       width,
       height,
@@ -643,6 +646,8 @@ class App extends React.Component {
       height: width / 1,
       left,
       top,
+      color,
+      background,
       /* rx: borderRadius / 1,
       strokeWidth: borderWidth / 1,
       stroke: borderColor, */
@@ -678,7 +683,7 @@ class App extends React.Component {
         this.addShape(3, 'update');
         break;
       case 'qrcode':
-        this.addShape(4, 'update')
+        this.addShape(4, 'update');
         break;
       default:
         break;
@@ -760,15 +765,16 @@ class App extends React.Component {
         break;
       case 'qrcode':
         index = 4;
-        delete css.color;
-        delete css.background;
+        delete css.height;
         delete css.borderRadius;
         delete css.borderWidth;
         delete css.borderColor;
         delete css.shadow;
         css = {
           url: item2.url,
-          ...css
+          ...css,
+          color: item2.color,
+          background: item2.background
         };
         break;
       default:
@@ -823,8 +829,6 @@ class App extends React.Component {
           }
         };
       } else if (type === 'qrcode') {
-        delete css.color;
-        delete css.background;
         delete css.borderRadius;
         delete css.borderWidth;
         delete css.borderColor;
@@ -833,7 +837,8 @@ class App extends React.Component {
           type,
           content: `${item2.url}`,
           css: {
-            ...css /* ,
+            ...css,
+            background: item2.background /* ,
               padding: `${item2.padding}rpx` */
           }
         };
