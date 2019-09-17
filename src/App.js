@@ -92,6 +92,7 @@ class App extends React.Component {
         currentOptionArr
       });
     }, 100);
+    let throttleHanderEditObject = _.throttle(that.handerEditObject, 100);
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
       // if object is too big ignore
@@ -118,7 +119,8 @@ class App extends React.Component {
           obj.canvas.width - obj.getBoundingRect().width + obj.left - obj.getBoundingRect().left
         );
       }
-      moveingFuc(e);
+
+      throttleHanderEditObject();
     });
     this.canvas_sprite.on('object:scaling', function(e) {
       var obj = e.target;
@@ -146,7 +148,7 @@ class App extends React.Component {
           obj.canvas.width - obj.getBoundingRect().width + obj.left - obj.getBoundingRect().left
         );
       }
-      scalingFuc(e);
+      throttleHanderEditObject();
     });
     this.canvas_sprite.on('mouse:down', function(e) {
       if (e.target) {
@@ -164,6 +166,7 @@ class App extends React.Component {
     this.addShape(1);
     this.addShape(2);
     this.addShape(3);
+    this.addShape(4);
     /* let canvas = this.canvas_sprite;
     canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
   }
@@ -214,22 +217,22 @@ class App extends React.Component {
     //console.log('event', event.which);
     // Start editing
   }
-  async addShape(index) {
+  async addShape(index, action) {
     const currentOptionArr = this.state.currentOptionArr;
     let { type } = currentOptionArr[index];
     let Shape;
     switch (type) {
       case 'text':
-        Shape = await this.addTextObject(index);
+        Shape = await this.addTextObject(index, action);
         break;
       case 'rect':
-        Shape = await this.addRectObject(index);
+        Shape = await this.addRectObject(index, action);
         break;
       case 'image':
-        Shape = await this.addImageObject(index);
+        Shape = await this.addImageObject(index, action);
         break;
       case 'qrcode':
-        Shape = await this.addQrcodeObject(index);
+        Shape = await this.addQrcodeObject(index, action);
         break;
       default:
         break;
@@ -238,10 +241,10 @@ class App extends React.Component {
     this.activeObject = Shape;
     this.canvas_sprite.add(Shape);
   }
-  async addTextObject(index, status) {
+  async addTextObject(index, action) {
     const that = this;
     let currentOptionArr;
-    if (status === 'update') {
+    if (action === 'update') {
       currentOptionArr = this.state.currentOptionArr;
     } else {
       currentOptionArr = this.currentOptionArr;
@@ -286,8 +289,8 @@ class App extends React.Component {
       width, //文字的高度随行高
       fill: color,
       fontWeight,
-      left, //距离画布左侧的距离，单位是像素
-      top /* : top + ((lineHeight - 1) * fontSize) / 2 */, //距离画布上边的距离
+      //left, //距离画布左侧的距离，单位是像素
+      //top /* : top + ((lineHeight - 1) * fontSize) / 2 */, //距离画布上边的距离
       fontSize, //文字大小
       fontFamily,
       padding,
@@ -303,8 +306,7 @@ class App extends React.Component {
       editable: true,
       maxLines: maxLines,
       textDecoration: textDecoration,
-      lockScalingY: true,
-      centeredRotation: true
+      lockScalingY: true
     };
     if (textStyle === 'stroke') {
       config = {
@@ -361,18 +363,19 @@ class App extends React.Component {
       fill: background,
       angle: rotate,
       shadow,
-      selectable: false,
-      centeredRotation: true
+      selectable: false
     });
     Shape = new fabric.Group([Rect, textBox], {
       width,
       height,
-      left, //距离画布左侧的距离，单位是像素
-      top,
+      left: left + width / 2, //距离画布左侧的距离，单位是像素
+      top: top + height / 2,
       angle: rotate,
       mytype: 'textGroup',
       lockScalingY: true,
       oldText: text,
+      originX: 'center',
+      originY: 'center',
       centeredRotation: true
     });
     Shape.on('scaling', function(e) {
@@ -435,15 +438,20 @@ class App extends React.Component {
         width: w,
         scaleX: 1,
         scaleY: 1,
-        originX: 'left'
+        originX: 'center'
       });
 
       that.canvas_sprite.renderAll();
     });
     return Shape;
   }
-  async addRectObject(index) {
-    const currentOptionArr = this.currentOptionArr;
+  async addRectObject(index, action) {
+    let currentOptionArr;
+    if (action === 'update') {
+      currentOptionArr = this.state.currentOptionArr;
+    } else {
+      currentOptionArr = this.currentOptionArr;
+    }
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -460,12 +468,12 @@ class App extends React.Component {
     } = css;
     width = width / 1;
     height = height / 1;
-    left = left / 1;
-    top = top / 1;
+    left = left / 1 + width / 2;
+    top = top / 1 + height / 2;
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
-    let Shape = new fabric.Rect({
+    let config = {
       width,
       height,
       left,
@@ -478,12 +486,20 @@ class App extends React.Component {
       //align,
       angle: rotate,
       shadow,
+      originX: 'center',
+      originY: 'center',
       mytype: 'rect'
-    });
+    };
+    let Shape = new fabric.Rect(config);
     return Shape;
   }
-  async addImageObject(index) {
-    const currentOptionArr = this.currentOptionArr;
+  async addImageObject(index, action) {
+    let currentOptionArr;
+    if (action === 'update') {
+      currentOptionArr = this.state.currentOptionArr;
+    } else {
+      currentOptionArr = this.currentOptionArr;
+    }
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -502,8 +518,8 @@ class App extends React.Component {
     } = css;
     width = width / 1;
     height = height / 1;
-    left = left / 1;
-    top = top / 1;
+    left = left / 1 + width / 2;
+    top = top / 1 + height / 2;
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
@@ -514,8 +530,8 @@ class App extends React.Component {
 
     Shape.set({
       url,
-      left: left / 1 /* + width / 2 */,
-      top: top / 1 /*  + height / 2 */,
+      left,
+      top,
       rx: borderRadius / 1,
       ry: borderRadius / 1,
       strokeWidth: borderWidth / 1,
@@ -525,225 +541,8 @@ class App extends React.Component {
       angle: rotate / 1,
       mode,
       shadow,
-      mytype: 'image' /* ,
       originX: 'center',
-      originY: 'center' */
-    });
-
-    if (mode === 'scaleToFill') {
-      Shape.set({
-        width: imgWidth,
-        height: imgHeight,
-        scaleX: width / imgWidth,
-        scaleY: height / imgHeight,
-        oldScaleX: width / imgWidth,
-        oldScaleY: height / imgHeight
-      });
-      Shape.clipPath = new fabric.Rect({
-        width,
-        height,
-        originX: 'center',
-        originY: 'center',
-        rx: borderRadius,
-        angle: rotate / 1,
-        scaleX: imgWidth / width,
-        scaleY: imgHeight / height
-      });
-    } else if (mode === 'auto') {
-      //忽略高度会自适应宽度,等比缩放图片
-      Shape.set({
-        width: imgWidth,
-        height: imgHeight,
-        scaleX: width / imgWidth,
-        scaleY: width / imgWidth,
-        oldScaleX: width / imgWidth,
-        oldScaleY: height / imgHeight
-      });
-      Shape.clipPath = new fabric.Rect({
-        width,
-        height,
-        originX: 'center',
-        originY: 'center',
-        rx: borderRadius,
-        angle: rotate / 1,
-        scaleX: imgWidth / width,
-        scaleY: imgHeight / height
-      });
-    } else if (mode === 'aspectFill') {
-      Shape.clipPath = new fabric.Rect({
-        width: width / 1,
-        height: height / 1,
-        originX: 'center',
-        originY: 'center',
-        rx: borderRadius / 1,
-        angle: rotate / 1
-      });
-      Shape.set({
-        width,
-        height
-      });
-    }
-
-    return Shape;
-  }
-  async addQrcodeObject(index) {
-    const currentOptionArr = this.currentOptionArr;
-    let { css } = currentOptionArr[index];
-    let {
-      width,
-      left,
-      top,
-      color,
-      /* borderRadius,
-      borderWidth,
-      borderColor, */
-      background,
-      rotate,
-      url
-      //align,
-    } = css;
-    width = width / 1;
-    left = left / 1;
-    top = top / 1;
-    rotate = rotate / 1;
-    let imgBase64 = jrQrcode.getQrBase64(url, {
-      padding: 0, // 二维码四边空白（默认为10px）
-      width: width / 1, // 二维码图片宽度（默认为256px）
-      height: width / 1, // 二维码图片高度（默认为256px）
-      correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
-      reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
-      background: background, // 二维码背景颜色（默认白色）
-      foreground: color // 二维码颜色（默认黑色）
-    });
-    let Shape = await this.loadImageUrl(imgBase64);
-    Shape.set({
-      url,
-      width: width / 1,
-      height: width / 1,
-      left: left / 1,
-      top: top / 1,
-      /* rx: borderRadius / 1,
-      strokeWidth: borderWidth / 1,
-      stroke: borderColor, */
-      //align,
-      angle: rotate / 1,
-      lockUniScaling: true, //只能等比缩放
-      mytype: 'qrcode'
-    });
-
-    return Shape;
-  }
-  loadImageUrl(imgUrl) {
-    return new Promise(resolve => {
-      fabric.Image.fromURL(imgUrl, function(oImg) {
-        //console.log('Shape', oImg);
-        resolve(oImg);
-      });
-    });
-  }
-  updateObject() {
-    let type = this.activeObject.mytype;
-    switch (type) {
-      case 'textGroup':
-        this.canvas_sprite.remove(this.activeObject);
-        this.addShape(1, 'update');
-        break;
-      case 'rect':
-        this.updateRectObject(2);
-        break;
-      case 'image':
-        this.updateImageObject(3);
-        break;
-      case 'qrcode':
-        this.updateQrcodeObject(4);
-        break;
-      default:
-        break;
-    }
-    this.canvas_sprite.renderAll();
-  }
-  updateRectObject(index) {
-    const currentOptionArr = this.state.currentOptionArr;
-    let { css } = currentOptionArr[2];
-    let {
-      width,
-      height,
-      left,
-      top,
-      borderRadius,
-      borderWidth,
-      borderColor,
-      background,
-      rotate,
-      //align,
-      shadow
-    } = css;
-    width = width / 1;
-    height = height / 1;
-    left = left / 1;
-    top = top / 1;
-    borderRadius = borderRadius / 1;
-    borderWidth = borderWidth / 1;
-    rotate = rotate / 1;
-    this.activeObject.set({
-      width,
-      height,
-      left,
-      top,
-      rx: borderRadius,
-      //ry:borderRadius,
-      strokeWidth: borderWidth,
-      stroke: borderColor,
-      fill: background,
-      //align,
-      rotate,
-      shadow,
-      mytype: 'rect'
-    });
-  }
-  updateImageObject(index) {
-    const currentOptionArr = this.state.currentOptionArr;
-    let { css } = currentOptionArr[index];
-    let {
-      width,
-      height,
-      left,
-      top,
-      borderRadius,
-      borderWidth,
-      borderColor,
-      background,
-      rotate,
-      //align,
-      shadow,
-      mode,
-      url
-    } = css;
-    width = width / 1;
-    height = height / 1;
-    left = left / 1;
-    top = top / 1;
-    borderRadius = borderRadius / 1;
-    borderWidth = borderWidth / 1;
-    rotate = rotate / 1;
-
-    let Shape = this.activeObject;
-    let imgWidth = Shape.width;
-    let imgHeight = Shape.height;
-
-    Shape.set({
-      url,
-      left: left / 1,
-      top: top / 1,
-      rx: borderRadius / 1,
-      ry: borderRadius / 1,
-      strokeWidth: borderWidth / 1,
-      stroke: borderColor,
-      backgroundColor: background,
-      //align,
-      angle: rotate / 1,
-      mode,
-      shadow,
+      originY: 'center',
       mytype: 'image'
     });
 
@@ -800,42 +599,91 @@ class App extends React.Component {
         height
       });
     }
+
+    return Shape;
   }
-  updateQrcodeObject(index) {
-    const currentOptionArr = this.state.currentOptionArr;
+  async addQrcodeObject(index, action) {
+    let currentOptionArr;
+    if (action === 'update') {
+      currentOptionArr = this.state.currentOptionArr;
+    } else {
+      currentOptionArr = this.currentOptionArr;
+    }
     let { css } = currentOptionArr[index];
     let {
       width,
       left,
       top,
-      //color,
+      color,
       /* borderRadius,
       borderWidth,
       borderColor, */
-      //background,
+      background,
       rotate,
       url
       //align,
     } = css;
     width = width / 1;
-    left = left / 1;
-    top = top / 1;
+    left = left / 1 + width / 2;
+    top = top / 1 + width / 2;
     rotate = rotate / 1;
-    let Shape = this.activeObject;
+    let imgBase64 = jrQrcode.getQrBase64(url, {
+      padding: 0, // 二维码四边空白（默认为10px）
+      width: width / 1, // 二维码图片宽度（默认为256px）
+      height: width / 1, // 二维码图片高度（默认为256px）
+      correctLevel: QRErrorCorrectLevel.H, // 二维码容错level（默认为高）
+      reverse: false, // 反色二维码，二维码颜色为上层容器的背景颜色
+      background: background, // 二维码背景颜色（默认白色）
+      foreground: color // 二维码颜色（默认黑色）
+    });
+    let Shape = await this.loadImageUrl(imgBase64);
     Shape.set({
       url,
       width: width / 1,
       height: width / 1,
-      left: left / 1,
-      top: top / 1,
+      left,
+      top,
       /* rx: borderRadius / 1,
       strokeWidth: borderWidth / 1,
       stroke: borderColor, */
       //align,
       angle: rotate / 1,
       lockUniScaling: true, //只能等比缩放
+      originX: 'center',
+      originY: 'center',
       mytype: 'qrcode'
     });
+
+    return Shape;
+  }
+  loadImageUrl(imgUrl) {
+    return new Promise(resolve => {
+      fabric.Image.fromURL(imgUrl, function(oImg) {
+        //console.log('Shape', oImg);
+        resolve(oImg);
+      });
+    });
+  }
+  updateObject() {
+    let type = this.activeObject.mytype;
+    this.canvas_sprite.remove(this.activeObject);
+    switch (type) {
+      case 'textGroup':
+        this.addShape(1, 'update');
+        break;
+      case 'rect':
+        this.addShape(2, 'update');
+        break;
+      case 'image':
+        this.addShape(3, 'update');
+        break;
+      case 'qrcode':
+        this.addShape(4, 'update')
+        break;
+      default:
+        break;
+    }
+    this.canvas_sprite.renderAll();
   }
 
   handerEditObject() {
@@ -850,8 +698,8 @@ class App extends React.Component {
       background: `${item2.fill}`,
       width: `${item2.width * item2.scaleX}`,
       height: `${item2.height * item2.scaleY}`,
-      top: `${item2.top}`,
-      left: `${item2.left}`,
+      top: `${item2.top - (item2.height * item2.scaleY) / 2}`,
+      left: `${item2.left - (item2.width * item2.scaleX) / 2}`,
       rotate: `${item2.angle}`,
       borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}`,
       borderWidth: `${item2.strokeWidth}`,
@@ -944,13 +792,15 @@ class App extends React.Component {
       let view = {};
       //let oldScaleX = item2.oldScaleX || 1;
       let oldScaleY = item2.oldScaleY || 1;
+      let width = item2.width * item2.scaleX;
+      let height = item2.height * item2.scaleY;
       let css = {
         color: `${item2.color}`,
         background: `${item2.fill}`,
-        width: `${item2.width * item2.scaleX}px`,
-        height: `${item2.height * item2.scaleY}px`,
-        top: `${item2.top}px`,
-        left: `${item2.left}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        top: `${item2.top - height / 2}px`,
+        left: `${item2.left - width / 2}px`,
         rotate: `${item2.angle}`,
         borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}px`,
         borderWidth: `${item2.strokeWidth}px`,
@@ -996,8 +846,8 @@ class App extends React.Component {
               css: {
                 ...css,
                 ...view.css,
-                left: `${item2.left + ele.padding}px`,
-                top: `${item2.top + ele.padding + ele.strokeWidth}px`,
+                /* left: `${item2.left + ele.padding}px`,
+                top: `${item2.top + ele.padding + ele.strokeWidth}px`, */
                 background: `${ele.fill}`,
                 borderRadius: `${ele.rx}px`,
                 borderWidth: `${ele.strokeWidth}px`,

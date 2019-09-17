@@ -76,8 +76,8 @@ let optionArr = [
       url: '哈哈哈',
       color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
       background: '#ffffff', //文字区域背景色
-      top: 100,
-      left: 100,
+      top: 10,
+      left: 300,
       width: 200,
       rotate: 0
       // borderRadius: 10,
