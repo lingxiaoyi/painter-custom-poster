@@ -138,7 +138,7 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(2);
+    this.addShape(1);
     /* this.addShape(2);
     this.addShape(3);
     this.addShape(4); */
@@ -224,7 +224,7 @@ class App extends React.Component {
     } else {
       currentOptionArr = this.currentOptionArr;
     }
-
+    console.log('currentOptionArr', currentOptionArr);
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -292,6 +292,15 @@ class App extends React.Component {
     }
 
     let textBox = new fabric.Textbox(text, config);
+    textBox.toObject = (function(toObject) {
+      return function() {
+        return fabric.util.object.extend(toObject.call(this), {
+          maxLines,
+          textDecoration,
+          textStyle
+        });
+      };
+    })(textBox.toObject);
     //通过最大行高计算高度,并删除多余文字,多出文字..表示,三个会换行
     if (textBox.textLines.length > maxLines) {
       let text = '';
@@ -356,6 +365,14 @@ class App extends React.Component {
       originY: 'center',
       centeredRotation: true
     });
+    Shape.toObject = (function(toObject) {
+      return function() {
+        return fabric.util.object.extend(toObject.call(this), {
+          mytype: 'textGroup',
+          oldText: text
+        });
+      };
+    })(Shape.toObject);
     Shape.on('scaling', function(e) {
       let obj = this;
       let width = obj.width;
@@ -660,6 +677,16 @@ class App extends React.Component {
       rx: borderRadius,
       angle: rotate / 1
     });
+    Shape.toObject = (function(toObject) {
+      return function() {
+        return fabric.util.object.extend(toObject.call(this), {
+          mytype: 'qrcode',
+          url,
+          color,
+          background
+        });
+      };
+    })(Shape.toObject);
     return Shape;
   }
   loadImageUrl(imgUrl) {
@@ -714,6 +741,7 @@ class App extends React.Component {
       shadow: `${item2.shadow}`
     };
     let index = '';
+    console.log('item2', item2);
     switch (type) {
       case 'textGroup':
         index = 1;
@@ -737,7 +765,7 @@ class App extends React.Component {
               padding: `${ele.padding}`,
               fontSize: `${ele.fontSize}`,
               fontWeight: `${ele.fontWeight}`,
-              lineHeight: `${ele.lineHeight}`,
+              lineHeight: `${ele.lineHeight * 1.08}`,
               textStyle: `${ele.textStyle}`,
               textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
               fontFamily: `${ele.fontFamily}`,
@@ -954,6 +982,13 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     canvas_sprite.loadFromJSON(this.importCodeJson, () => {
       this.setState({
         visibleImportCode: false
+      });
+      canvas_sprite.getObjects().forEach(item => {
+        this.activeObject = item;
+        this.handerEditObject();
+        setTimeout(() => {
+          this.updateObject();
+        }, 10);
       });
       message.success(`画面加载成功`, 2);
     });
