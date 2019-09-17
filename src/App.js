@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import json from 'format-json';
 import { optionArr, newOptionArr } from './optionArr';
 import './App.scss';
+var FontFaceObserver = require('fontfaceobserver');
 const { Option } = Select;
 fabric = fabric.fabric;
 message.config({
@@ -37,6 +38,7 @@ class App extends React.Component {
     this.generateCode = this.generateCode.bind(this);
     this.copyCode = this.copyCode.bind(this);
     this.viewCode = this.viewCode.bind(this);
+    this.exportCode = this.exportCode.bind(this);
     this.handerUndo = this.handerUndo.bind(this);
     this.handerRedo = this.handerRedo.bind(this);
     this.handerEditObject = this.handerEditObject.bind(this);
@@ -57,42 +59,9 @@ class App extends React.Component {
   componentDidMount() {
     this.canvas_sprite = new fabric.Canvas('merge', this.state.currentOptionArr[0].css);
     let that = this;
-    let moveingFuc = _.throttle(function(e) {
-      let { top, left /* , width, height  */ } = e.target;
-      let currentOptionArr = _.cloneDeep(that.state.currentOptionArr);
-      currentOptionArr.forEach(item => {
-        item.css = {
-          ...item.css,
-          top: '' + top,
-          left: '' + left
-        };
-      });
-
-      that.setState({
-        currentOptionArr
-      });
-    }, 100);
-    let scalingFuc = _.throttle(function(e) {
-      let { top, left, width, height, scaleX, scaleY, rx, strokeWidth, oldScaleY } = e.target;
-      oldScaleY = oldScaleY || 1;
-      let currentOptionArr = _.cloneDeep(that.state.currentOptionArr);
-      currentOptionArr.forEach(item => {
-        item.css = {
-          ...item.css,
-          top: '' + top,
-          left: '' + left,
-          width: `${width * scaleX}`,
-          height: `${height * scaleY}`,
-          borderRadius: `${rx * (scaleY / oldScaleY)}`,
-          borderWidth: `${strokeWidth}`
-        };
-      });
-
-      that.setState({
-        currentOptionArr
-      });
-    }, 100);
     let throttleHanderEditObject = _.throttle(that.handerEditObject, 100);
+    var font = new FontFaceObserver('webfont');
+    font.load();
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
       // if object is too big ignore
@@ -163,10 +132,10 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(1);
-    this.addShape(2);
-    this.addShape(3);
     this.addShape(4);
+    /* this.addShape(2);
+    this.addShape(3);
+    this.addShape(4); */
     /* let canvas = this.canvas_sprite;
     canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
   }
@@ -346,11 +315,11 @@ class App extends React.Component {
         });
       }
     }
-    let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2;
-    width = textBox.width + padding * 2;
+    let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2 + borderWidth * 2;
+    width = textBox.width + padding * 2 + borderWidth * 2;
     left = textBox.left - padding;
     top = css.top - padding;
-   /*  textBox.set({
+    /*  textBox.set({
       top: top + height / 2
     }); */
     let Rect = new fabric.Rect({
@@ -618,9 +587,9 @@ class App extends React.Component {
       left,
       top,
       color,
-      /* borderRadius,
+      borderRadius,
       borderWidth,
-      borderColor, */
+      borderColor,
       background,
       rotate,
       url
@@ -648,9 +617,9 @@ class App extends React.Component {
       top,
       color,
       background,
-      /* rx: borderRadius / 1,
+      rx: borderRadius / 1,
       strokeWidth: borderWidth / 1,
-      stroke: borderColor, */
+      stroke: borderColor,
       //align,
       angle: rotate / 1,
       lockUniScaling: true, //只能等比缩放
@@ -658,7 +627,14 @@ class App extends React.Component {
       originY: 'center',
       mytype: 'qrcode'
     });
-
+    Shape.clipPath = new fabric.Rect({
+      width,
+      height: width / 1,
+      originX: 'center',
+      originY: 'center',
+      rx: borderRadius,
+      angle: rotate / 1
+    });
     return Shape;
   }
   loadImageUrl(imgUrl) {
@@ -703,8 +679,8 @@ class App extends React.Component {
       background: `${item2.fill}`,
       width: `${item2.width * item2.scaleX}`,
       height: `${item2.height * item2.scaleY}`,
-      top: `${item2.top - (item2.height * item2.scaleY) / 2}`,
-      left: `${item2.left - (item2.width * item2.scaleX) / 2}`,
+      top: `${item2.top - (item2.height * item2.scaleY) / 2 - item2.strokeWidth / 2}`,
+      left: `${item2.left - (item2.width * item2.scaleX) / 2 - item2.strokeWidth / 2}`,
       rotate: `${item2.angle}`,
       borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}`,
       borderWidth: `${item2.strokeWidth}`,
@@ -805,11 +781,11 @@ class App extends React.Component {
         background: `${item2.fill}`,
         width: `${width}px`,
         height: `${height}px`,
-        top: `${item2.top - height / 2}px`,
-        left: `${item2.left - width / 2}px`,
+        top: `${item2.top - height / 2 + item2.strokeWidth / 2}px`,
+        left: `${item2.left - width / 2 + item2.strokeWidth / 2}px`,
         rotate: `${item2.angle}`,
         borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}px`,
-        borderWidth: `${item2.strokeWidth}px`,
+        borderWidth: `${item2.strokeWidth ? item2.strokeWidth + 'px' : ''}`,
         borderColor: `${item2.stroke}`,
         //align: `${item2.align}`,
         shadow: `${item2.shadow}`
@@ -829,9 +805,9 @@ class App extends React.Component {
           }
         };
       } else if (type === 'qrcode') {
-        delete css.borderRadius;
+        /* delete css.borderRadius;
         delete css.borderWidth;
-        delete css.borderColor;
+        delete css.borderColor; */
         delete css.shadow;
         view = {
           type,
@@ -851,11 +827,11 @@ class App extends React.Component {
               css: {
                 ...css,
                 ...view.css,
-                /* left: `${item2.left + ele.padding}px`,
-                top: `${item2.top + ele.padding + ele.strokeWidth}px`, */
+                left: `${item2.left - width / 2 + ele.padding + ele.strokeWidth}px`,
+                top: `${item2.top - height / 2 + ele.padding + ele.strokeWidth}px`,
                 background: `${ele.fill}`,
                 borderRadius: `${ele.rx}px`,
-                borderWidth: `${ele.strokeWidth}px`,
+                borderWidth: `${ele.strokeWidth ? ele.strokeWidth + 'px' : ''}`,
                 borderColor: `${ele.stroke}`
               }
             };
@@ -938,6 +914,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     this.setState({
       visibleCode: true
     });
+  }
+  exportCode() {
+    console.log('exportCode', _config.canvasState[_config.canvasState.length - 1]);
   }
   updateCanvasState() {
     let that = this;
@@ -1061,6 +1040,11 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
               <div className='btn'>
                 <Button type='primary' onClick={this.viewCode}>
                   查看代码
+                </Button>
+              </div>
+              <div className='btn'>
+                <Button type='primary' onClick={this.exportCode}>
+                  导出json
                 </Button>
               </div>
             </div>

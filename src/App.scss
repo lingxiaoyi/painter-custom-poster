@@ -1,4 +1,15 @@
 @import '~antd/dist/antd.css';
+@font-face {
+  font-family: 'webfont';
+  font-display: swap;
+  src: url('//at.alicdn.com/t/webfont_yqn92wjzqr.eot'); /* IE9*/
+  src: url('//at.alicdn.com/t/webfont_yqn92wjzqr.eot?#iefix') format('embedded-opentype'),
+    /* IE6-IE8 */ url('//at.alicdn.com/t/webfont_yqn92wjzqr.woff2') format('woff2'),
+    url('//at.alicdn.com/t/webfont_yqn92wjzqr.woff') format('woff'),
+    /* chrome、firefox */ url('//at.alicdn.com/t/webfont_yqn92wjzqr.ttf') format('truetype'),
+    /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+      url('//at.alicdn.com/t/webfont_yqn92wjzqr.svg#庞门正道标题体2') format('svg'); /* iOS 4.1- */
+}
 .App {
   text-align: center;
 }
@@ -32,6 +43,7 @@ input {
 #main {
   display: flex;
   justify-content: center;
+  //font-family: 'xingyan';
   #merge {
     width: 100%;
   }

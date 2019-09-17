@@ -13,7 +13,7 @@ let optionArr = [
     type: 'text',
     name: '文字',
     css: {
-      text: ' 我是来测试的,请你不要打死我',
+      text: '别跟我谈感情，谈感情伤钱。',
       width: 200,
       lineHeight: 1.5,
       color: 'red',
@@ -32,7 +32,7 @@ let optionArr = [
       padding: 0,
       rotate: 0,
       shadow: '10 10 5 #888888',
-      fontFamily: ''
+      fontFamily: 'webfont'
     }
   },
   {
@@ -81,7 +81,7 @@ let optionArr = [
       width: 200,
       rotate: 0,
       borderRadius: 10,
-      borderWidth: 2,
+      borderWidth: 0,
       borderColor: '#000000',
       //align: ['center', 'left', 'right'], //view 的对齐方式
       //padding: '3'
