@@ -9,8 +9,9 @@ import ReactMarkdown from 'react-markdown';
 import json from 'format-json';
 import { optionArr, newOptionArr } from './optionArr';
 import './App.scss';
-import importCodeJson from './importCodeJson';
-var FontFaceObserver = require('fontfaceobserver');
+import exampleData from './example/example';
+//import importCodeJson from './importCodeJson';
+//var FontFaceObserver = require('fontfaceobserver');
 const { Option } = Select;
 const { TextArea } = Input;
 fabric = fabric.fabric;
@@ -66,8 +67,8 @@ class App extends React.Component {
     this.canvas_sprite = new fabric.Canvas('merge', this.state.currentOptionArr[0].css);
     let that = this;
     let throttlechangeActiveObjectValue = _.throttle(that.changeActiveObjectValue, 100);
-    var font = new FontFaceObserver('webfont');
-    font.load();
+    /* var font = new FontFaceObserver('webfont');
+    font.load(); */
     //this.confirmImportCode();
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
@@ -616,6 +617,7 @@ class App extends React.Component {
       mytype: 'image',
       mode,
       url,
+      lockUniScaling: true, //只能等比缩放
       oldScaleX: width / imgWidth,
       oldScaleY: height / imgHeight
     });
@@ -992,7 +994,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
       }
     }
     `;
-    console.log('finallObj', json.plain(this.finallObj).replace(/px/g, 'rpx'));
+    //console.log('finallObj', json.plain(this.finallObj).replace(/px/g, 'rpx'));
   }
   clearCanvas() {
     this.rects.forEach(function(item, i) {
@@ -1017,7 +1019,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     });
   }
   exportCode() {
-    console.log('exportCode', _config.canvasState[_config.canvasState.length - 1]);
+    //console.log('exportCode', _config.canvasState[_config.canvasState.length - 1]);
     copy(/* 'export default' +  */ _config.canvasState[_config.canvasState.length - 1]);
   }
   importCode() {
@@ -1273,82 +1275,98 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
             })}
           </div>
         </div>
-        {
-          <div className='edit-modal'>
-            <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible} mask={false} placement='left'>
-              {currentOptionArr.map((item, i) => {
-                let type = this.activeObject.mytype;
-                if (type === 'textGroup') {
-                  type = 'text';
-                }
-                if (item.type === type) {
-                  return (
-                    <div key={i} className='option-li'>
-                      <div className='row'>
-                        <div className='h3'>{item.name} </div>
-                      </div>
-                      {Object.keys(item.css).map((item2, i2) => {
-                        if (item2 === 'rotate') {
-                          return null;
-                        }
-                        return (
-                          <div className='row' key={i2}>
-                            <div className='h3'>{item2} </div>
-                            {!_.isArray(optionArr[i].css[item2]) && (
-                              <Input
-                                defaultValue={item.css[item2]}
-                                value={item.css[item2]}
-                                onChange={event => {
-                                  let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
-                                  currentOptionArr[i].css[item2] = event.target.value;
-                                  this.setState(
-                                    {
-                                      currentOptionArr
-                                    },
-                                    () => {
-                                      this.updateObject();
-                                    }
-                                  );
-                                }}
-                              />
-                            )}
-                            {_.isArray(optionArr[i].css[item2]) && (
-                              <Select
-                                defaultValue={item.css[item2]}
-                                value={item.css[item2]}
-                                style={{ width: 120 }}
-                                onChange={value => {
-                                  let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
-                                  currentOptionArr[i].css[item2] = value;
-                                  this.setState(
-                                    {
-                                      currentOptionArr
-                                    },
-                                    () => {
-                                      this.updateObject();
-                                    }
-                                  );
-                                }}
-                              >
-                                {optionArr[i].css[item2].map((item3, i3) => {
-                                  return (
-                                    <Option value={item3} key={i3}>
-                                      {item3}
-                                    </Option>
-                                  );
-                                })}
-                              </Select>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+        <div className='example'>
+          {exampleData.map((item, i) => {
+            return (
+              <div
+                className='li'
+                key={i}
+                onClick={() => {
+                  this.setState(
+                    {
+                      importCodeJson: item.json
+                    },
+                    this.confirmImportCode
                   );
-                }
-              })}
-            </Drawer>
-          </div>
-        }
+                }}
+              >
+                <img src={item.src} alt='' />
+              </div>
+            );
+          })}
+        </div>
+        <Drawer title='编辑对象' width={400} onClose={this.onClose} visible={visible} mask={false} placement='left'>
+          {currentOptionArr.map((item, i) => {
+            let type = this.activeObject.mytype;
+            if (type === 'textGroup') {
+              type = 'text';
+            }
+            if (item.type === type) {
+              return (
+                <div key={i} className='option-li'>
+                  <div className='row'>
+                    <div className='h3'>{item.name} </div>
+                  </div>
+                  {Object.keys(item.css).map((item2, i2) => {
+                    if (item2 === 'rotate') {
+                      return null;
+                    }
+                    return (
+                      <div className='row' key={i2}>
+                        <div className='h3'>{item2} </div>
+                        {!_.isArray(optionArr[i].css[item2]) && (
+                          <Input
+                            defaultValue={item.css[item2]}
+                            value={item.css[item2]}
+                            onChange={event => {
+                              let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
+                              currentOptionArr[i].css[item2] = event.target.value;
+                              this.setState(
+                                {
+                                  currentOptionArr
+                                },
+                                () => {
+                                  this.updateObject();
+                                }
+                              );
+                            }}
+                          />
+                        )}
+                        {_.isArray(optionArr[i].css[item2]) && (
+                          <Select
+                            defaultValue={item.css[item2]}
+                            value={item.css[item2]}
+                            style={{ width: 120 }}
+                            onChange={value => {
+                              let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
+                              currentOptionArr[i].css[item2] = value;
+                              this.setState(
+                                {
+                                  currentOptionArr
+                                },
+                                () => {
+                                  this.updateObject();
+                                }
+                              );
+                            }}
+                          >
+                            {optionArr[i].css[item2].map((item3, i3) => {
+                              return (
+                                <Option value={item3} key={i3}>
+                                  {item3}
+                                </Option>
+                              );
+                            })}
+                          </Select>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+          })}
+        </Drawer>
         <Modal
           title='view code'
           visible={visibleCode}
