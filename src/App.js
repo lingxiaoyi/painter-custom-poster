@@ -67,7 +67,7 @@ class App extends React.Component {
     let throttleHanderEditObject = _.throttle(that.handerEditObject, 100);
     var font = new FontFaceObserver('webfont');
     font.load();
-    this.confirmImportCode();
+    //this.confirmImportCode();
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
       // if object is too big ignore
@@ -138,6 +138,7 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
+    this.addShape(3);
     /* this.addShape(1);
     this.addShape(2);
     this.addShape(3);
@@ -224,7 +225,7 @@ class App extends React.Component {
     } else {
       currentOptionArr = this.currentOptionArr;
     }
-    console.log('currentOptionArr', currentOptionArr);
+    //console.log('currentOptionArr', currentOptionArr);
     let { css } = currentOptionArr[index];
     let {
       width,
@@ -630,13 +631,14 @@ class App extends React.Component {
       top,
       color,
       borderRadius,
-      borderWidth,
-      borderColor,
+      //borderWidth,
+      //borderColor,
       background,
       rotate,
       url
       //align,
     } = css;
+    console.log('css', css);
     width = width / 1;
     left = left / 1 + width / 2;
     top = top / 1 + width / 2;
@@ -660,8 +662,8 @@ class App extends React.Component {
       color,
       background,
       rx: borderRadius / 1,
-      strokeWidth: borderWidth / 1,
-      stroke: borderColor,
+      //strokeWidth: borderWidth / 1,
+      //stroke: borderColor,
       //align,
       angle: rotate / 1,
       lockUniScaling: true, //只能等比缩放
@@ -683,7 +685,8 @@ class App extends React.Component {
           mytype: 'qrcode',
           url,
           color,
-          background
+          background,
+          rx: borderRadius / 1,
         });
       };
     })(Shape.toObject);
@@ -750,6 +753,8 @@ class App extends React.Component {
             delete css.height;
             css = {
               ...css,
+              width: `${item2.width * item2.scaleX - ele.strokeWidth * 2}`,
+              height: `${item2.height * item2.scaleY - ele.strokeWidth * 2}`,
               background: `${ele.fill}`,
               borderRadius: `${ele.rx}`,
               borderWidth: `${ele.strokeWidth}`,
@@ -795,7 +800,6 @@ class App extends React.Component {
       case 'qrcode':
         index = 4;
         delete css.height;
-        delete css.borderRadius;
         delete css.borderWidth;
         delete css.borderColor;
         delete css.shadow;
@@ -970,7 +974,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
   }
   exportCode() {
     console.log('exportCode', _config.canvasState[_config.canvasState.length - 1]);
-    copy('export default' + _config.canvasState[_config.canvasState.length - 1]);
+    copy(/* 'export default' +  */ _config.canvasState[_config.canvasState.length - 1]);
   }
   importCode() {
     this.setState({
@@ -1120,11 +1124,11 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                   复制代码
                 </Button>
               </div>
-              <div className='btn'>
+              {/* <div className='btn'>
                 <Button type='primary' onClick={this.viewCode}>
                   查看代码
                 </Button>
-              </div>
+              </div> */}
               <div className='btn'>
                 <Button type='primary' onClick={this.exportCode}>
                   导出json

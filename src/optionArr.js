@@ -80,9 +80,9 @@ let optionArr = [
       left: 300,
       width: 200,
       rotate: 0,
-      borderRadius: 10,
+      borderRadius: 10/* ,
       borderWidth: 0,
-      borderColor: '#000000',
+      borderColor: '#000000', */
       //align: ['center', 'left', 'right'], //view 的对齐方式
       //padding: '3'
     }
