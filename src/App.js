@@ -44,7 +44,7 @@ class App extends React.Component {
     this.importCode = this.importCode.bind(this);
     this.handerUndo = this.handerUndo.bind(this);
     this.handerRedo = this.handerRedo.bind(this);
-    this.handerEditObject = this.handerEditObject.bind(this);
+    this.changeActiveObjectValue = this.changeActiveObjectValue.bind(this);
     this.confirmImportCode = this.confirmImportCode.bind(this);
     this.state = {
       redoButtonStatus: '',
@@ -64,7 +64,7 @@ class App extends React.Component {
   componentDidMount() {
     this.canvas_sprite = new fabric.Canvas('merge', this.state.currentOptionArr[0].css);
     let that = this;
-    let throttleHanderEditObject = _.throttle(that.handerEditObject, 100);
+    let throttlechangeActiveObjectValue = _.throttle(that.changeActiveObjectValue, 100);
     var font = new FontFaceObserver('webfont');
     font.load();
     //this.confirmImportCode();
@@ -95,7 +95,7 @@ class App extends React.Component {
         );
       }
 
-      throttleHanderEditObject();
+      throttlechangeActiveObjectValue();
     });
     this.canvas_sprite.on('object:scaling', function(e) {
       var obj = e.target;
@@ -123,12 +123,12 @@ class App extends React.Component {
           obj.canvas.width - obj.getBoundingRect().width + obj.left - obj.getBoundingRect().left
         );
       }
-      throttleHanderEditObject();
+      throttlechangeActiveObjectValue();
     });
     this.canvas_sprite.on('mouse:down', function(e) {
       if (e.target) {
         that.activeObject = e.target;
-        that.handerEditObject();
+        that.changeActiveObjectValue();
       }
     });
     this.canvas_sprite.on('object:modified', function() {
@@ -521,8 +521,8 @@ class App extends React.Component {
     } = css;
     width = width / 1;
     height = height / 1;
-    left = left / 1 + width / 2;
-    top = top / 1 + height / 2;
+    left = left / 1 /*  + width / 2 */;
+    top = top / 1 /*  + height / 2 */;
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
@@ -530,7 +530,6 @@ class App extends React.Component {
     let Shape = await this.loadImageUrl(url);
     let imgWidth = Shape.width;
     let imgHeight = Shape.height;
-
     Shape.set({
       url,
       left,
@@ -548,7 +547,6 @@ class App extends React.Component {
       originY: 'center',
       mytype: 'image'
     });
-
     if (mode === 'scaleToFill') {
       Shape.set({
         width: imgWidth,
@@ -602,20 +600,72 @@ class App extends React.Component {
         height
       });
     }
-
-    Shape.toObject = (function(toObject) {
+    let group = new fabric.Group([Shape], {
+      left,
+      top,
+      width: width + borderWidth,
+      height: height + borderWidth,
+      rx: borderRadius / 1,
+      //ry:borderRadius,
+      strokeWidth: borderWidth / 1,
+      stroke: borderColor,
+      fill: background,
+      angle: rotate,
+      shadow,
+      mytype: 'image',
+      mode,
+      url,
+      oldScaleX: width / imgWidth,
+      oldScaleY: height / imgHeight
+    });
+    group.add(
+      new fabric.Rect({
+        width: width + borderWidth,
+        height: height + borderWidth,
+        left: 0,
+        top: 0,
+        originX: 'center',
+        originY: 'center',
+        //padding,
+        rx: borderRadius + borderWidth / 2,
+        //ry:borderRadius,
+        strokeWidth: borderWidth / 1,
+        stroke: borderColor,
+        fill: background,
+        angle: rotate,
+        shadow,
+        selectable: false
+      })
+    );
+    //添加边框
+    /* let Rect = new fabric.Rect({
+      width: width+ borderWidth,
+      height: height+ borderWidth,
+      left, //距离画布左侧的距离，单位是像素
+      top,
+      //padding,
+      rx: borderRadius,
+      //ry:borderRadius,
+      strokeWidth: borderWidth / 1,
+      stroke: borderColor,
+      fill: background,
+      angle: rotate,
+      shadow,
+      selectable: false
+    }); */
+    group.toObject = (function(toObject) {
       return function() {
         return fabric.util.object.extend(toObject.call(this), {
           mytype: 'image',
           mode,
           url,
-          rx: borderRadius / 1,
           oldScaleX: width / imgWidth,
           oldScaleY: height / imgHeight
         });
       };
-    })(Shape.toObject);
-    return Shape;
+    })(group.toObject);
+    //console.log('group', group);
+    return group;
   }
   async addQrcodeObject(index, action) {
     let currentOptionArr;
@@ -686,7 +736,7 @@ class App extends React.Component {
           url,
           color,
           background,
-          rx: borderRadius / 1,
+          rx: borderRadius / 1
         });
       };
     })(Shape.toObject);
@@ -722,13 +772,13 @@ class App extends React.Component {
     this.canvas_sprite.renderAll();
   }
 
-  handerEditObject() {
+  changeActiveObjectValue() {
     this.setState({
       visible: true
     });
     let type = this.activeObject.mytype;
     let item2 = this.activeObject;
-    let oldScaleY = item2.oldScaleY || 1;
+    //let oldScaleY = item2.oldScaleY || 1;
     let css = {
       color: `${item2.color}`,
       background: `${item2.fill}`,
@@ -737,14 +787,13 @@ class App extends React.Component {
       top: `${item2.top - (item2.height * item2.scaleY) / 2 - item2.strokeWidth / 2}`,
       left: `${item2.left - (item2.width * item2.scaleX) / 2 - item2.strokeWidth / 2}`,
       rotate: `${item2.angle}`,
-      borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}`,
+      borderRadius: `${item2.rx * item2.scaleY /*  / oldScaleY */}`,
       borderWidth: `${item2.strokeWidth}`,
       borderColor: `${item2.stroke}`,
       //align: `${item2.align}`,
       shadow: `${item2.shadow}`
     };
     let index = '';
-    //console.log('item2', item2);
     switch (type) {
       case 'textGroup':
         index = 1;
@@ -794,7 +843,12 @@ class App extends React.Component {
         css = {
           url: item2.url,
           ...css,
-          mode: `${item2.mode}`
+          mode: `${item2.mode}`,
+          width: `${(item2.width - item2.strokeWidth) * item2.scaleX}`,
+          height: `${(item2.height - item2.strokeWidth) * item2.scaleY}`,
+          top: `${item2.top}`,
+          left: `${item2.left}`,
+          borderRadius: `${item2.rx * item2.scaleY}`
         };
         break;
       case 'qrcode':
@@ -830,7 +884,7 @@ class App extends React.Component {
     canvas_sprite.getObjects().forEach((item2, index) => {
       let view = {};
       //let oldScaleX = item2.oldScaleX || 1;
-      let oldScaleY = item2.oldScaleY || 1;
+      //let oldScaleY = item2.oldScaleY || 1;
       let width = item2.width * item2.scaleX;
       let height = item2.height * item2.scaleY;
       let css = {
@@ -841,7 +895,7 @@ class App extends React.Component {
         top: `${item2.top - height / 2 + item2.strokeWidth / 2}px`,
         left: `${item2.left - width / 2 + item2.strokeWidth / 2}px`,
         rotate: `${item2.angle}`,
-        borderRadius: `${item2.rx * (item2.scaleY / oldScaleY)}px`,
+        borderRadius: `${item2.rx * (item2.scaleY/*  / oldScaleY */)}px`,
         borderWidth: `${item2.strokeWidth ? item2.strokeWidth + 'px' : ''}`,
         borderColor: `${item2.stroke}`,
         //align: `${item2.align}`,
@@ -858,7 +912,11 @@ class App extends React.Component {
           url: `${item2.url}`,
           css: {
             ...css,
-            mode: `${item2.mode}`
+            mode: `${item2.mode}`,
+            width: `${(item2.width - item2.strokeWidth) * item2.scaleX}px`,
+          height: `${(item2.height - item2.strokeWidth) * item2.scaleY}px`,
+            top: `${item2.top + item2.strokeWidth}px`,
+            left: `${item2.left + item2.strokeWidth}px`
           }
         };
       } else if (type === 'qrcode') {
@@ -997,7 +1055,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
       for (let index = 0; index < Objects.length; index++) {
         const element = Objects[index];
         this.activeObject = element;
-        this.handerEditObject();
+        this.changeActiveObjectValue();
         await delay(10);
         this.updateObject();
         await delay(10);

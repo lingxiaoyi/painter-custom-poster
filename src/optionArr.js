@@ -58,8 +58,8 @@ let optionArr = [
     css: {
       url: 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg',
       mode: ['scaleToFill', 'aspectFill', 'auto'],
-      top: 100,
-      left: 100,
+      top: 0,
+      left: 0,
       width: 100,
       height: 100, //高度,没有的话就自适应
       rotate: 0,
