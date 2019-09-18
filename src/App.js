@@ -50,7 +50,8 @@ class App extends React.Component {
       redoButtonStatus: '',
       undoButtonStatus: '',
       currentOptionArr: newOptionArr, //当前可设置的数组的值
-      currentObjectType: 'text'
+      currentObjectType: 'text', //当前要添加对象的类型
+      importCodeJson: ''
     };
     this.currentOptionArr = newOptionArr; //当前图像数据集合
     this.views = []; //所有元素的信息
@@ -58,7 +59,7 @@ class App extends React.Component {
     this.height = 300; //固定死
     this.width = 0; //通过实际宽高比计算出来的
     this.activeObject = {};
-    this.importCodeJson = importCodeJson;
+    this.importCodeJson = '' /* importCodeJson */;
   }
 
   componentDidMount() {
@@ -618,6 +619,7 @@ class App extends React.Component {
       oldScaleX: width / imgWidth,
       oldScaleY: height / imgHeight
     });
+    //添加边框
     group.add(
       new fabric.Rect({
         width: width + borderWidth,
@@ -637,28 +639,13 @@ class App extends React.Component {
         selectable: false
       })
     );
-    //添加边框
-    /* let Rect = new fabric.Rect({
-      width: width+ borderWidth,
-      height: height+ borderWidth,
-      left, //距离画布左侧的距离，单位是像素
-      top,
-      //padding,
-      rx: borderRadius,
-      //ry:borderRadius,
-      strokeWidth: borderWidth / 1,
-      stroke: borderColor,
-      fill: background,
-      angle: rotate,
-      shadow,
-      selectable: false
-    }); */
     group.toObject = (function(toObject) {
       return function() {
         return fabric.util.object.extend(toObject.call(this), {
           mytype: 'image',
           mode,
           url,
+          rx: borderRadius + borderWidth / 2,
           oldScaleX: width / imgWidth,
           oldScaleY: height / imgHeight
         });
@@ -688,7 +675,6 @@ class App extends React.Component {
       url
       //align,
     } = css;
-    console.log('css', css);
     width = width / 1;
     left = left / 1 + width / 2;
     top = top / 1 + width / 2;
@@ -895,7 +881,7 @@ class App extends React.Component {
         top: `${item2.top - height / 2 + item2.strokeWidth / 2}px`,
         left: `${item2.left - width / 2 + item2.strokeWidth / 2}px`,
         rotate: `${item2.angle}`,
-        borderRadius: `${item2.rx * (item2.scaleY/*  / oldScaleY */)}px`,
+        borderRadius: `${item2.rx * item2.scaleY /*  / oldScaleY */}px`,
         borderWidth: `${item2.strokeWidth ? item2.strokeWidth + 'px' : ''}`,
         borderColor: `${item2.stroke}`,
         //align: `${item2.align}`,
@@ -914,7 +900,7 @@ class App extends React.Component {
             ...css,
             mode: `${item2.mode}`,
             width: `${(item2.width - item2.strokeWidth) * item2.scaleX}px`,
-          height: `${(item2.height - item2.strokeWidth) * item2.scaleY}px`,
+            height: `${(item2.height - item2.strokeWidth) * item2.scaleY}px`,
             top: `${item2.top + item2.strokeWidth}px`,
             left: `${item2.left + item2.strokeWidth}px`
           }
@@ -1047,7 +1033,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         clearTimeout(this.delayT);
         this.delayT = setTimeout(resolve, ms);
       });
-    canvas_sprite.loadFromJSON(this.importCodeJson, async () => {
+    canvas_sprite.loadFromJSON(this.state.importCodeJson, async () => {
       this.setState({
         visibleImportCode: false
       });
@@ -1060,6 +1046,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         this.updateObject();
         await delay(10);
       }
+      this.setState({
+        importCodeJson: ''
+      });
       message.success(`画面加载成功`, 2);
     });
   }
@@ -1396,9 +1385,13 @@ ${this.miniCode}
         >
           <TextArea
             placeholder='请将代码复制进来'
+            value={this.state.importCodeJson}
             autosize={{ minRows: 10, maxRows: 6 }}
             onChange={e => {
-              this.importCodeJson = e.target.value;
+              this.setState({
+                importCodeJson: e.target.value
+              });
+              //this.importCodeJson = e.target.value;
             }}
           />
         </Modal>
