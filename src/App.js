@@ -138,8 +138,8 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(1);
-    /* this.addShape(2);
+    /* this.addShape(1);
+    this.addShape(2);
     this.addShape(3);
     this.addShape(4); */
     /* let canvas = this.canvas_sprite;
@@ -741,7 +741,7 @@ class App extends React.Component {
       shadow: `${item2.shadow}`
     };
     let index = '';
-    console.log('item2', item2);
+    //console.log('item2', item2);
     switch (type) {
       case 'textGroup':
         index = 1;
@@ -979,17 +979,25 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
   }
   confirmImportCode() {
     let canvas_sprite = this.canvas_sprite;
-    canvas_sprite.loadFromJSON(this.importCodeJson, () => {
+
+    const delay = ms =>
+      new Promise(resolve => {
+        clearTimeout(this.delayT);
+        this.delayT = setTimeout(resolve, ms);
+      });
+    canvas_sprite.loadFromJSON(this.importCodeJson, async () => {
       this.setState({
         visibleImportCode: false
       });
-      canvas_sprite.getObjects().forEach(item => {
-        this.activeObject = item;
+      let Objects = canvas_sprite.getObjects();
+      for (let index = 0; index < Objects.length; index++) {
+        const element = Objects[index];
+        this.activeObject = element;
         this.handerEditObject();
-        setTimeout(() => {
-          this.updateObject();
-        }, 10);
-      });
+        await delay(10);
+        this.updateObject();
+        await delay(10);
+      }
       message.success(`画面加载成功`, 2);
     });
   }
