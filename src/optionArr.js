@@ -32,7 +32,7 @@ let optionArr = [
       padding: 0,
       rotate: 0,
       shadow: '10 10 5 #888888',
-      fontFamily: 'webfont'
+      fontFamily: '' //webfont
     }
   },
   {

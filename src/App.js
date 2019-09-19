@@ -140,7 +140,7 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(3);
+    this.addShape(2);
     /* this.addShape(1);
     this.addShape(2);
     this.addShape(3);
@@ -466,8 +466,8 @@ class App extends React.Component {
     } = css;
     width = width / 1;
     height = height / 1;
-    left = left / 1 + width / 2;
-    top = top / 1 + height / 2;
+    left = left / 1 /*  + width / 2 */;
+    top = top / 1 /* + height / 2 */;
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
@@ -478,25 +478,59 @@ class App extends React.Component {
       top,
       rx: borderRadius,
       //ry:borderRadius,
-      strokeWidth: borderWidth,
-      stroke: borderColor,
+      /* strokeWidth: borderWidth,
+      stroke: borderColor, */
       fill: background,
       //align,
       angle: rotate,
-      shadow,
+      //shadow,
       originX: 'center',
       originY: 'center',
       mytype: 'rect'
     };
     let Shape = new fabric.Rect(config);
-    Shape.toObject = (function(toObject) {
+    let group = new fabric.Group([Shape], {
+      left,
+      top,
+      width: width + borderWidth,
+      height: height + borderWidth,
+      rx: borderRadius / 1,
+      strokeWidth: borderWidth / 1,
+      stroke: borderColor,
+      fill: background,
+      angle: rotate,
+      myshadow: shadow,
+      mytype: 'rect'
+    });
+    //添加边框
+    group.add(
+      new fabric.Rect({
+        width: width + borderWidth,
+        height: height + borderWidth,
+        left: 0,
+        top: 0,
+        originX: 'center',
+        originY: 'center',
+        //padding,
+        rx: borderRadius + borderWidth / 2,
+        //ry:borderRadius,
+        strokeWidth: borderWidth / 1,
+        stroke: borderColor,
+        fill: 'rgba(0,0,0,0)',
+        angle: rotate,
+        shadow,
+        selectable: false
+      })
+    );
+    group.toObject = (function(toObject) {
       return function() {
         return fabric.util.object.extend(toObject.call(this), {
-          mytype: 'rect'
+          mytype: 'rect',
+          rx: borderRadius + borderWidth / 2
         });
       };
-    })(Shape.toObject);
-    return Shape;
+    })(group.toObject);
+    return group;
   }
   async addImageObject(index, action) {
     let currentOptionArr;
@@ -821,7 +855,13 @@ class App extends React.Component {
         index = 2;
         delete css.color;
         css = {
-          ...css
+          ...css,
+          width: `${(item2.width - item2.strokeWidth) * item2.scaleX}`,
+          height: `${(item2.height - item2.strokeWidth) * item2.scaleY}`,
+          top: `${item2.top}`,
+          left: `${item2.left}`,
+          borderRadius: `${item2.rx * item2.scaleY}`,
+          shadow: `${item2.myshadow}`
         };
         break;
       case 'image':
@@ -908,9 +948,9 @@ class App extends React.Component {
           }
         };
       } else if (type === 'qrcode') {
-        /* delete css.borderRadius;
+        //delete css.borderRadius;
         delete css.borderWidth;
-        delete css.borderColor; */
+        delete css.borderColor;
         delete css.shadow;
         view = {
           type,
@@ -942,7 +982,7 @@ class App extends React.Component {
             view = {
               ...view,
               type: 'text',
-              text: `${ele.text}`,
+              text: `${item2.oldText}`,
               css: {
                 ...css,
                 ...view.css,
@@ -973,7 +1013,12 @@ class App extends React.Component {
           type,
           css: {
             ...css,
-            color: item2.fill
+            color: item2.fill,
+            width: `${(item2.width - item2.strokeWidth) * item2.scaleX}px`,
+            height: `${(item2.height - item2.strokeWidth) * item2.scaleY}px`,
+            top: `${item2.top + item2.strokeWidth}px`,
+            left: `${item2.left + item2.strokeWidth}px`,
+            shadow: `${item2.myshadow}`
           }
         };
       }
