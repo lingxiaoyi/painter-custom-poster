@@ -18,7 +18,7 @@ let optionArr = [
       lineHeight: 1.5,
       color: 'red',
       top: 0,
-      left: 100,
+      left: 0,
       background: 'rgba(0,0,0,0)',
       fontSize: 30,
       fontWeight: ['normal', 'bold'], //文字加粗 可以不写
@@ -42,10 +42,10 @@ let optionArr = [
       background: '#ffffff', //文字区域背景色
       top: 0,
       left: 0,
-      width: 500,
+      width: 200,
       height: 100, //高度,没有的话就自适应
       rotate: 0,
-      borderRadius: 50,
+      borderRadius: 25,
       borderWidth: 2,
       borderColor: '#000000',
       //align: ['center', 'left', 'right'], //view 的对齐方式

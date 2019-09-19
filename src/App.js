@@ -65,11 +65,21 @@ class App extends React.Component {
 
   componentDidMount() {
     this.canvas_sprite = new fabric.Canvas('merge', this.state.currentOptionArr[0].css);
-    let that = this;
-    let throttlechangeActiveObjectValue = _.throttle(that.changeActiveObjectValue, 100);
     /* var font = new FontFaceObserver('webfont');
     font.load(); */
     //this.confirmImportCode();
+    this.addEventListener();
+    this.addShape(1);
+    /* this.addShape(1);
+    this.addShape(2);
+    this.addShape(3);
+    this.addShape(4); */
+    /* let canvas = this.canvas_sprite;
+    canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
+  }
+  addEventListener(){
+    let that = this;
+    let throttlechangeActiveObjectValue = _.throttle(that.changeActiveObjectValue, 100);
     this.canvas_sprite.on('object:moving', function(e) {
       var obj = e.target;
       // if object is too big ignore
@@ -133,6 +143,13 @@ class App extends React.Component {
         that.changeActiveObjectValue();
       }
     });
+    //解决放大缩小元素位置不对的问题
+    this.canvas_sprite.on('object:scaled', function(e) {
+      if (e.target) {
+        that.activeObject = e.target;
+        that.updateObject();
+      }
+    });
     this.canvas_sprite.on('object:modified', function() {
       that.updateCanvasState();
     });
@@ -140,13 +157,6 @@ class App extends React.Component {
     this.canvas_sprite.on('object:added', function() {
       that.updateCanvasState();
     });
-    this.addShape(2);
-    /* this.addShape(1);
-    this.addShape(2);
-    this.addShape(3);
-    this.addShape(4); */
-    /* let canvas = this.canvas_sprite;
-    canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
   }
   @keydown(ALL_KEYS)
   beginEdit(event) {
@@ -358,8 +368,8 @@ class App extends React.Component {
     Shape = new fabric.Group([Rect, textBox], {
       width,
       height,
-      left: left + width / 2, //距离画布左侧的距离，单位是像素
-      top: top + height / 2,
+      left: left + width / 2 + borderWidth, //距离画布左侧的距离，单位是像素
+      top: top + height / 2+ borderWidth,
       angle: rotate,
       mytype: 'textGroup',
       lockScalingY: true,
@@ -484,7 +494,8 @@ class App extends React.Component {
       originY: 'center',
       angle: rotate,
       myshadow: shadow,
-      mytype: 'rect'
+      mytype: 'rect',
+      lockUniScaling: true //只能等比缩放
     });
     group.add(
       new fabric.Rect({
@@ -563,15 +574,7 @@ class App extends React.Component {
     let imgHeight = Shape.height;
     Shape.set({
       url,
-      left,
-      top,
-      rx: borderRadius / 1,
-      ry: borderRadius / 1,
-      strokeWidth: borderWidth / 1,
-      stroke: borderColor,
-      backgroundColor: background,
       //align,
-      angle: rotate / 1,
       mode,
       shadow,
       originX: 'center',
@@ -592,7 +595,6 @@ class App extends React.Component {
         originX: 'center',
         originY: 'center',
         rx: borderRadius,
-        angle: rotate / 1,
         scaleX: imgWidth / width,
         scaleY: imgHeight / height
       });
@@ -612,7 +614,6 @@ class App extends React.Component {
         originX: 'center',
         originY: 'center',
         rx: borderRadius,
-        angle: rotate / 1,
         scaleX: imgWidth / width,
         scaleY: imgHeight / height
       });
@@ -622,8 +623,7 @@ class App extends React.Component {
         height: height / 1,
         originX: 'center',
         originY: 'center',
-        rx: borderRadius / 1,
-        angle: rotate / 1
+        rx: borderRadius / 1
       });
       Shape.set({
         width,
@@ -631,12 +631,11 @@ class App extends React.Component {
       });
     }
     let group = new fabric.Group([Shape], {
-      left: left + width / 2,
-      top: top + height / 2,
+      left: left + width / 2 + borderWidth,
+      top: top + height / 2 + borderWidth,
       width: width + borderWidth,
       height: height + borderWidth,
       rx: borderRadius / 1,
-      //ry:borderRadius,
       strokeWidth: borderWidth / 1,
       stroke: borderColor,
       fill: background,
@@ -647,7 +646,7 @@ class App extends React.Component {
       mytype: 'image',
       mode,
       url,
-      lockUniScaling: true, //只能等比缩放
+      lockUniScaling: true //只能等比缩放
     });
     //添加边框
     group.add(
@@ -660,11 +659,9 @@ class App extends React.Component {
         originY: 'center',
         //padding,
         rx: borderRadius + borderWidth / 2,
-        //ry:borderRadius,
         strokeWidth: borderWidth / 1,
         stroke: borderColor,
-        fill: background,
-        angle: rotate,
+        fill: 'rgba(0,0,0,0)',
         shadow,
         selectable: false
       })
@@ -793,16 +790,19 @@ class App extends React.Component {
     });
     let type = this.activeObject.mytype;
     let item2 = this.activeObject;
+    let width = `${(item2.width - item2.strokeWidth) * item2.scaleX}`;
+    let height = `${(item2.height - item2.strokeWidth) * item2.scaleY}`;
+    //console.log(item2.left / item2.scaleY, item2.left, item2.scaleY);
     let css = {
       color: `${item2.color}`,
       background: `${item2.fill}`,
-      width: `${item2.width * item2.scaleX}`,
-      height: `${item2.height * item2.scaleY}`,
-      top: `${item2.top - (item2.height * item2.scaleY) / 2 - item2.strokeWidth / 2}`,
-      left: `${item2.left - (item2.width * item2.scaleX) / 2 - item2.strokeWidth / 2}`,
+      width,
+      height,
+      top: `${(item2.top / item2.scaleY - (item2.height - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`,
+      left: `${(item2.left / item2.scaleY - (item2.width - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`,
       rotate: `${item2.angle}`,
       borderRadius: `${item2.rx * item2.scaleY}`,
-      borderWidth: `${item2.strokeWidth}`,
+      borderWidth: `${item2.strokeWidth * item2.scaleY}`,
       borderColor: `${item2.stroke}`,
       //align: `${item2.align}`,
       shadow: `${item2.shadow}`
@@ -848,9 +848,6 @@ class App extends React.Component {
         delete css.color;
         css = {
           ...css,
-          width: `${(item2.width - item2.strokeWidth) * item2.scaleX}`,
-          height: `${(item2.height - item2.strokeWidth) * item2.scaleY}`,
-          borderRadius: `${item2.rx * item2.scaleY}`,
           shadow: `${item2.myshadow}`
         };
         break;
@@ -861,12 +858,7 @@ class App extends React.Component {
         css = {
           url: item2.url,
           ...css,
-          mode: `${item2.mode}`,
-          width: `${(item2.width - item2.strokeWidth) * item2.scaleX}`,
-          height: `${(item2.height - item2.strokeWidth) * item2.scaleY}`,
-          top: `${item2.top}`,
-          left: `${item2.left}`,
-          borderRadius: `${item2.rx * item2.scaleY}`
+          mode: `${item2.mode}`
         };
         break;
       case 'qrcode':
@@ -901,8 +893,6 @@ class App extends React.Component {
     this.views = [];
     canvas_sprite.getObjects().forEach((item2, index) => {
       let view = {};
-      //let oldScaleX = item2.oldScaleX || 1;
-      //let oldScaleY = item2.oldScaleY || 1;
       let width = item2.width * item2.scaleX;
       let height = item2.height * item2.scaleY;
       let css = {
@@ -913,8 +903,8 @@ class App extends React.Component {
         top: `${item2.top - height / 2 + item2.strokeWidth / 2}px`,
         left: `${item2.left - width / 2 + item2.strokeWidth / 2}px`,
         rotate: `${item2.angle}`,
-        borderRadius: `${item2.rx * item2.scaleY /*  / oldScaleY */}px`,
-        borderWidth: `${item2.strokeWidth ? item2.strokeWidth + 'px' : ''}`,
+        borderRadius: `${item2.rx * item2.scaleY}px`,
+        borderWidth: `${item2.strokeWidth ? item2.strokeWidth * item2.scaleY + 'px' : ''}`,
         borderColor: `${item2.stroke}`,
         //align: `${item2.align}`,
         shadow: `${item2.shadow}`
