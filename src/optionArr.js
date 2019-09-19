@@ -40,8 +40,8 @@ let optionArr = [
     name: '矩形',
     css: {
       background: '#ffffff', //文字区域背景色
-      top: 300,
-      left: 100,
+      top: 0,
+      left: 0,
       width: 500,
       height: 100, //高度,没有的话就自适应
       rotate: 0,

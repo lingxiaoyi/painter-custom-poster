@@ -466,42 +466,38 @@ class App extends React.Component {
     } = css;
     width = width / 1;
     height = height / 1;
-    left = left / 1 /*  + width / 2 */;
-    top = top / 1 /* + height / 2 */;
+    left = left / 1;
+    top = top / 1;
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
-    let config = {
-      width,
-      height,
-      left,
-      top,
-      rx: borderRadius,
-      //ry:borderRadius,
-      /* strokeWidth: borderWidth,
-      stroke: borderColor, */
-      fill: background,
-      //align,
-      angle: rotate,
-      //shadow,
-      originX: 'center',
-      originY: 'center',
-      mytype: 'rect'
-    };
-    let Shape = new fabric.Rect(config);
-    let group = new fabric.Group([Shape], {
-      left,
-      top,
+    let group = new fabric.Group([], {
+      left: left + width / 2 + borderWidth,
+      top: top + height / 2 + borderWidth,
       width: width + borderWidth,
       height: height + borderWidth,
       rx: borderRadius / 1,
       strokeWidth: borderWidth / 1,
       stroke: borderColor,
       fill: background,
+      originX: 'center',
+      originY: 'center',
       angle: rotate,
       myshadow: shadow,
       mytype: 'rect'
     });
+    group.add(
+      new fabric.Rect({
+        width,
+        height,
+        left: 0,
+        top: 0,
+        rx: borderRadius,
+        fill: background,
+        originX: 'center',
+        originY: 'center'
+      })
+    );
     //添加边框
     group.add(
       new fabric.Rect({
@@ -513,11 +509,9 @@ class App extends React.Component {
         originY: 'center',
         //padding,
         rx: borderRadius + borderWidth / 2,
-        //ry:borderRadius,
         strokeWidth: borderWidth / 1,
         stroke: borderColor,
         fill: 'rgba(0,0,0,0)',
-        angle: rotate,
         shadow,
         selectable: false
       })
@@ -526,7 +520,8 @@ class App extends React.Component {
       return function() {
         return fabric.util.object.extend(toObject.call(this), {
           mytype: 'rect',
-          rx: borderRadius + borderWidth / 2
+          rx: borderRadius + borderWidth / 2,
+          myshadow: shadow
         });
       };
     })(group.toObject);
@@ -557,8 +552,8 @@ class App extends React.Component {
     } = css;
     width = width / 1;
     height = height / 1;
-    left = left / 1 /*  + width / 2 */;
-    top = top / 1 /*  + height / 2 */;
+    left = left / 1;
+    top = top / 1;
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
@@ -580,8 +575,7 @@ class App extends React.Component {
       mode,
       shadow,
       originX: 'center',
-      originY: 'center',
-      mytype: 'image'
+      originY: 'center'
     });
     if (mode === 'scaleToFill') {
       Shape.set({
@@ -637,8 +631,8 @@ class App extends React.Component {
       });
     }
     let group = new fabric.Group([Shape], {
-      left,
-      top,
+      left: left + width / 2,
+      top: top + height / 2,
       width: width + borderWidth,
       height: height + borderWidth,
       rx: borderRadius / 1,
@@ -648,12 +642,12 @@ class App extends React.Component {
       fill: background,
       angle: rotate,
       shadow,
+      originX: 'center',
+      originY: 'center',
       mytype: 'image',
       mode,
       url,
       lockUniScaling: true, //只能等比缩放
-      oldScaleX: width / imgWidth,
-      oldScaleY: height / imgHeight
     });
     //添加边框
     group.add(
@@ -767,7 +761,6 @@ class App extends React.Component {
   loadImageUrl(imgUrl) {
     return new Promise(resolve => {
       fabric.Image.fromURL(imgUrl, function(oImg) {
-        //console.log('Shape', oImg);
         resolve(oImg);
       });
     });
@@ -800,7 +793,6 @@ class App extends React.Component {
     });
     let type = this.activeObject.mytype;
     let item2 = this.activeObject;
-    //let oldScaleY = item2.oldScaleY || 1;
     let css = {
       color: `${item2.color}`,
       background: `${item2.fill}`,
@@ -809,7 +801,7 @@ class App extends React.Component {
       top: `${item2.top - (item2.height * item2.scaleY) / 2 - item2.strokeWidth / 2}`,
       left: `${item2.left - (item2.width * item2.scaleX) / 2 - item2.strokeWidth / 2}`,
       rotate: `${item2.angle}`,
-      borderRadius: `${item2.rx * item2.scaleY /*  / oldScaleY */}`,
+      borderRadius: `${item2.rx * item2.scaleY}`,
       borderWidth: `${item2.strokeWidth}`,
       borderColor: `${item2.stroke}`,
       //align: `${item2.align}`,
@@ -858,8 +850,6 @@ class App extends React.Component {
           ...css,
           width: `${(item2.width - item2.strokeWidth) * item2.scaleX}`,
           height: `${(item2.height - item2.strokeWidth) * item2.scaleY}`,
-          top: `${item2.top}`,
-          left: `${item2.left}`,
           borderRadius: `${item2.rx * item2.scaleY}`,
           shadow: `${item2.myshadow}`
         };
@@ -942,9 +932,7 @@ class App extends React.Component {
             ...css,
             mode: `${item2.mode}`,
             width: `${(item2.width - item2.strokeWidth) * item2.scaleX}px`,
-            height: `${(item2.height - item2.strokeWidth) * item2.scaleY}px`,
-            top: `${item2.top + item2.strokeWidth}px`,
-            left: `${item2.left + item2.strokeWidth}px`
+            height: `${(item2.height - item2.strokeWidth) * item2.scaleY}px`
           }
         };
       } else if (type === 'qrcode') {
@@ -1016,8 +1004,6 @@ class App extends React.Component {
             color: item2.fill,
             width: `${(item2.width - item2.strokeWidth) * item2.scaleX}px`,
             height: `${(item2.height - item2.strokeWidth) * item2.scaleY}px`,
-            top: `${item2.top + item2.strokeWidth}px`,
-            left: `${item2.left + item2.strokeWidth}px`,
             shadow: `${item2.myshadow}`
           }
         };
@@ -1270,9 +1256,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                       )}
                     </div>
                     {Object.keys(item.css).map((item2, i2) => {
-                      if (item2 === 'rotate') {
+                      /* if (item2 === 'rotate') {
                         return null;
-                      }
+                      } */
                       return (
                         <div className='row' key={i2}>
                           <div className='h3'>{item2} </div>
@@ -1353,9 +1339,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                     <div className='h3'>{item.name} </div>
                   </div>
                   {Object.keys(item.css).map((item2, i2) => {
-                    if (item2 === 'rotate') {
+                    /* if (item2 === 'rotate') {
                       return null;
-                    }
+                    } */
                     return (
                       <div className='row' key={i2}>
                         <div className='h3'>{item2} </div>
