@@ -287,7 +287,7 @@ class App extends React.Component {
       textAlign,
       textStyle,
       shadow,
-      angle: rotate,
+      //angle: rotate,
       splitByGrapheme: true, //文字换行
       zIndex: 2,
       lineHeight,
@@ -361,15 +361,15 @@ class App extends React.Component {
       strokeWidth: borderWidth / 1,
       stroke: borderColor,
       fill: background,
-      angle: rotate,
+      //angle: rotate,
       shadow,
       selectable: false
     });
     Shape = new fabric.Group([Rect, textBox], {
       width,
       height,
-      left: left + width / 2 + borderWidth, //距离画布左侧的距离，单位是像素
-      top: top + height / 2+ borderWidth,
+      left: left + width / 2, //距离画布左侧的距离，单位是像素
+      top: top + height / 2,
       angle: rotate,
       mytype: 'textGroup',
       lockScalingY: true,
