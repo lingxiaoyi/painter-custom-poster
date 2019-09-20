@@ -385,7 +385,7 @@ class App extends React.Component {
     if (GD.api.isGradient(background)) {
       gradientOption = GD.api.doGradient(background, width, height);
     }
-    Rect.setGradient('fill', gradientOption);
+    if (gradientOption) Rect.setGradient('fill', gradientOption);
     Shape = new fabric.Group([Rect, textBox], {
       width,
       height,
@@ -532,7 +532,7 @@ class App extends React.Component {
       originX: 'center',
       originY: 'center'
     });
-    rect.setGradient('fill', gradientOption);
+    if (gradientOption) rect.setGradient('fill', gradientOption);
     group.add(rect);
     //添加边框
     group.add(
