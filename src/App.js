@@ -12,6 +12,7 @@ import './App.scss';
 import exampleData from './example/example';
 //import importCodeJson from './importCodeJson';
 //var FontFaceObserver = require('fontfaceobserver');
+const GD = require('./gradient.js');
 const { Option } = Select;
 const { TextArea } = Input;
 fabric = fabric.fabric;
@@ -76,8 +77,23 @@ class App extends React.Component {
     this.addShape(4); */
     /* let canvas = this.canvas_sprite;
     canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 })); */
+    /* let rect = new fabric.Rect({
+      width: 200,
+      height: 100,
+      left: 0,
+      top: 0,
+      fill: '#000'
+    });
+    let background = 'linear-gradient(280deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)';
+    this.canvas_sprite.add(rect);
+    let gradientOption = '';
+    if (GD.api.isGradient(background)) {
+      gradientOption = GD.api.doGradient(background, 200, 100);
+    }
+
+    rect.setGradient('fill', gradientOption); */
   }
-  addEventListener(){
+  addEventListener() {
     let that = this;
     let throttlechangeActiveObjectValue = _.throttle(that.changeActiveObjectValue, 100);
     this.canvas_sprite.on('object:moving', function(e) {
@@ -365,6 +381,11 @@ class App extends React.Component {
       shadow,
       selectable: false
     });
+    let gradientOption = '';
+    if (GD.api.isGradient(background)) {
+      gradientOption = GD.api.doGradient(background, width, height);
+    }
+    Rect.setGradient('fill', gradientOption);
     Shape = new fabric.Group([Rect, textBox], {
       width,
       height,
@@ -497,18 +518,22 @@ class App extends React.Component {
       mytype: 'rect',
       lockUniScaling: true //只能等比缩放
     });
-    group.add(
-      new fabric.Rect({
-        width,
-        height,
-        left: 0,
-        top: 0,
-        rx: borderRadius,
-        fill: background,
-        originX: 'center',
-        originY: 'center'
-      })
-    );
+    let gradientOption = '';
+    if (GD.api.isGradient(background)) {
+      gradientOption = GD.api.doGradient(background, width, height);
+    }
+    let rect = new fabric.Rect({
+      width,
+      height,
+      left: 0,
+      top: 0,
+      rx: borderRadius,
+      fill: background,
+      originX: 'center',
+      originY: 'center'
+    });
+    rect.setGradient('fill', gradientOption);
+    group.add(rect);
     //添加边框
     group.add(
       new fabric.Rect({

@@ -30,7 +30,7 @@ let optionArr = [
       borderWidth: 1,
       borderColor: '#000000',
       padding: 0,
-      rotate: 30,
+      rotate: 0,
       shadow: '10 10 5 #888888',
       fontFamily: '' //webfont
     }
@@ -39,7 +39,9 @@ let optionArr = [
     type: 'rect',
     name: '矩形',
     css: {
-      background: 'linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)',
+      //background: 'linear-gradient(280deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)',
+      //background: 'radial-gradient(rgba(0, 0, 0, 0) 5%, #0ff 15%, #f0f 60%)',
+      background: '#fff',
       top: 0,
       left: 0,
       width: 200,
