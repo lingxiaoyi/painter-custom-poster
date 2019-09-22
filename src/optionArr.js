@@ -15,7 +15,7 @@ let optionArr = [
     css: {
       text: '别跟我谈感情，谈感情伤钱。',
       width: 200,
-      lineHeight: 1.5,
+      lineHeight: 2,
       color: 'red',
       top: 0,
       left: 0,
@@ -39,16 +39,16 @@ let optionArr = [
     type: 'rect',
     name: '矩形',
     css: {
-      background: 'linear-gradient(280deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)',
+      //background: 'linear-gradient(280deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)',
       //background: 'radial-gradient(rgba(0, 0, 0, 0) 5%, #0ff 15%, #f0f 60%)',
-      //background: '#fff',
+      background: '#000',
       top: 0,
-      left: 0,
+      left: 200,
       width: 200,
-      height: 100, //高度,没有的话就自适应
+      height: 122, //高度,没有的话就自适应
       rotate: 0,
-      borderRadius: 25,
-      borderWidth: 2,
+      borderRadius: 0,
+      borderWidth: 0,
       borderColor: '#000000',
       //align: ['center', 'left', 'right'], //view 的对齐方式
       shadow: '10 10 5 #888888' //阴影
@@ -78,8 +78,8 @@ let optionArr = [
       url: '哈哈哈',
       color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
       background: '#ffffff', //文字区域背景色
-      top: 10,
-      left: 300,
+      top: 135,
+      left: 0,
       width: 200,
       rotate: 0,
       borderRadius: 10/* ,

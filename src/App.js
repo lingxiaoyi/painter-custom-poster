@@ -71,6 +71,8 @@ class App extends React.Component {
     //this.confirmImportCode();
     this.addEventListener();
     this.addShape(1);
+    this.addShape(2);
+    this.addShape(4);
     /* this.addShape(1);
     this.addShape(2);
     this.addShape(3);
@@ -177,45 +179,40 @@ class App extends React.Component {
   @keydown(ALL_KEYS)
   beginEdit(event) {
     let that = this;
+    event.preventDefault();
     if (that.activeObject) {
       //console.log('that.activeObject', that.activeObject);
       if (event.which === 37) {
         //左
-        event.preventDefault();
         that.activeObject.set({
           left: that.activeObject.left - 1
         });
       } else if (event.which === 39) {
         //右
-        event.preventDefault();
         that.activeObject.set({
           left: that.activeObject.left + 1
         });
       } else if (event.which === 40) {
         //上
-        event.preventDefault();
         that.activeObject.set({
           top: that.activeObject.top + 1
         });
       } else if (event.which === 38) {
         //下
-        event.preventDefault();
         that.activeObject.set({
           top: that.activeObject.top - 1
         });
       } else if (event.which === 90) {
         //ctrl+z
-        event.preventDefault();
         that.handerUndo();
       } else if (event.which === 89) {
         //ctrl+y
-        event.preventDefault();
         that.handerRedo();
       } else if (event.which === 46) {
         //delete
-        event.preventDefault();
         this.canvas_sprite.remove(that.activeObject);
       }
+      this.changeActiveObjectValue();
       this.canvas_sprite.renderAll();
     }
     //console.log('event', event.which);
@@ -287,7 +284,7 @@ class App extends React.Component {
     fontSize = fontSize / 1;
     maxLines = maxLines / 1;
     padding = padding / 1;
-    lineHeight = lineHeight / 1.08; //和painter调试得出的值
+    lineHeight = lineHeight / 1; //和painter调试得出的值
     let Shape;
     let config = {
       width, //文字的高度随行高
@@ -386,6 +383,7 @@ class App extends React.Component {
       gradientOption = GD.api.doGradient(background, width, height);
     }
     if (gradientOption) Rect.setGradient('fill', gradientOption);
+    console.log('height',height);
     Shape = new fabric.Group([Rect, textBox], {
       width,
       height,
@@ -842,7 +840,7 @@ class App extends React.Component {
             css = {
               ...css,
               width: `${item2.width * item2.scaleX - ele.strokeWidth * 2}`,
-              height: `${item2.height * item2.scaleY - ele.strokeWidth * 2}`,
+              //height: `${item2.height * item2.scaleY - ele.strokeWidth * 2}`,
               background: `${ele.fill}`,
               borderRadius: `${ele.rx}`,
               borderWidth: `${ele.strokeWidth}`,
@@ -853,12 +851,12 @@ class App extends React.Component {
             css = {
               text: `${item2.oldText}`,
               maxLines: `${ele.maxLines}`,
+              lineHeight: `${ele.lineHeight/*  * 1.08 */}`,
               ...css,
               color: ele.fill,
               padding: `${ele.padding}`,
               fontSize: `${ele.fontSize}`,
               fontWeight: `${ele.fontWeight}`,
-              lineHeight: `${ele.lineHeight * 1.08}`,
               textStyle: `${ele.textStyle}`,
               textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
               fontFamily: `${ele.fontFamily}`,
@@ -935,7 +933,7 @@ class App extends React.Component {
         shadow: `${item2.shadow}`
       };
       //console.log('canvas_sprite.toObject(item2)', canvas_sprite.toObject(item2));
-
+    console.log('height',height);
       let type = item2.mytype;
       if (type === 'image') {
         delete css.color;
@@ -990,13 +988,13 @@ class App extends React.Component {
                 ...css,
                 ...view.css,
                 width: `${ele.width}px`,
-                height: `${ele.height}px`,
+                //height: `${ele.height}px`,
                 color: ele.fill,
                 padding: `${ele.padding}px`,
                 fontSize: `${ele.fontSize}px`,
                 fontWeight: `${ele.fontWeight}`,
                 maxLines: `${ele.maxLines}`,
-                lineHeight: `${ele.lineHeight * 1.08 * ele.fontSize}px`,
+                lineHeight: `${ele.lineHeight * 1.11 * ele.fontSize}px`,
                 textStyle: `${ele.textStyle}`,
                 textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
                 fontFamily: `${ele.fontFamily}`,
@@ -1065,8 +1063,10 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     });
   }
   exportCode() {
-    //console.log('exportCode', _config.canvasState[_config.canvasState.length - 1]);
-    copy(/* 'export default' +  */ _config.canvasState[_config.canvasState.length - 1]);
+    let canvas_sprite = this.canvas_sprite;
+    var jsonData = canvas_sprite.toJSON();
+    var canvasAsJson = JSON.stringify(jsonData);
+    copy(/* 'export default' +  */ canvasAsJson);
   }
   importCode() {
     this.setState({
