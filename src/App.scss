@@ -65,37 +65,44 @@ input {
       margin-left: 10px;
     }
   }
-  .option {
-    margin-top: 10px;
-    .option-li {
-      margin-top: 10px;
-      border: 1px solid #eee;
-      padding: 0 20px 10px;
-      margin-left: 10px;
-    }
-    .row {
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      margin-top: 10px;
-      .h3 {
-        color: #333;
-        font-size: 16px;
-        width: 100px;
-        margin-right: 10px;
-      }
-      .ant-btn {
-        margin-right: 10px;
-      }
-      .ant-input {
-        width: 200px;
-        min-width: auto;
-      }
-    }
-  }
   .example {
     width: 400px;
     min-height: 300px;
     background: #eeeeee;
+  }
+}
+.option {
+  margin-top: 10px;
+  .option-li {
+    margin-top: 10px;
+    border: 1px solid #eee;
+    padding: 0 20px 10px;
+    margin-left: 10px;
+  }
+  .row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 10px;
+    .h3 {
+      color: #333;
+      font-size: 16px;
+      width: 110px;
+      margin-right: 10px;
+    }
+    .ant-btn {
+      margin-right: 10px;
+    }
+    .ant-input {
+      width: 200px;
+      min-width: auto;
+    }
+  }
+}
+.option-drawer {
+  margin-top: 33px;
+  .option-li {
+    border: 0;
+    padding: 0;
   }
 }
