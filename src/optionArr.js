@@ -44,14 +44,14 @@ let optionArr = [
       //background: 'radial-gradient(rgba(0, 0, 0, 0) 5%, #0ff 15%, #f0f 60%)',
       width: 200,
       height: 122, //高度,没有的话就自适应
-      left: 202,
+      left: 452,
       top: 0,
-      background: '#ffffff',
+      background: '#000000',
       rotate: 0,
       borderRadius: 0,
-      borderWidth: 1,
+      borderWidth: 0,
       borderColor: '#ff0000',
-      shadow: '10 10 5 #888888' //阴影
+      shadow: '' //阴影
     }
   },
   {
@@ -60,15 +60,15 @@ let optionArr = [
     css: {
       url: 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg',
       mode: ['scaleToFill', 'aspectFill', 'auto'],
-      width: 100,
-      height: 100, //高度,没有的话就自适应
+      width: 400,
+      height: 200, //高度,没有的话就自适应
       left: 0,
-      top: 0,
+      top: 300,
       rotate: 0,
-      borderRadius: 50,
-      borderWidth: 2,
+      borderRadius: 10,
+      borderWidth: 0,
       borderColor: '#000000',
-      shadow: '10 10 5 #888888' //阴影
+      shadow: '10 10 10 #888888' //阴影
     }
   },
   {
@@ -77,16 +77,12 @@ let optionArr = [
     css: {
       url: '哈哈哈',
       width: 200,
-      left: 0,
-      top: 135,
+      left: 454,
+      top: 303,
       color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
       background: '#ffffff', //文字区域背景色
       rotate: 0,
-      borderRadius: 10/* ,
-      borderWidth: 0,
-      borderColor: '#000000', */
-      //align: ['center', 'left', 'right'], //view 的对齐方式
-      //padding: '3'
+      borderRadius: 10
     }
   }
 ];

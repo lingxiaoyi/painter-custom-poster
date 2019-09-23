@@ -70,18 +70,6 @@ class App extends React.Component {
     font.load(); */
     //this.confirmImportCode();
     this.addEventListener();
-    //this.addShape(1);
-    this.addShape(3);
-    this.addShape(3);
-    this.addShape(3);
-    this.addShape(3);
-    this.addShape(3);
-    this.addShape(3);
-    this.addShape(3);
-    this.addShape(3);
-    this.addShape(3);
-    this.addShape(3);
-    //this.addShape(4);
     /* this.addShape(1);
     this.addShape(2);
     this.addShape(3);
@@ -296,6 +284,7 @@ class App extends React.Component {
     maxLines = maxLines / 1;
     padding = 0 /*  padding / 1 */;
     lineHeight = lineHeight / 1; //和painter调试得出的值
+    shadow = shadow.trim().split(/\s+/).join(' ');
     let Shape;
     let config = {
       width, //文字的高度随行高
@@ -457,6 +446,7 @@ class App extends React.Component {
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
+    shadow = shadow.trim().split(/\s+/).join(' ');
     let group = new fabric.Group([], {
       left: left + width / 2 + borderWidth,
       top: top + height / 2 + borderWidth,
@@ -548,7 +538,7 @@ class App extends React.Component {
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
-
+    shadow = shadow.trim().split(/\s+/).join(' ');
     let Shape = await this.loadImageUrl(url);
     let imgWidth = Shape.width;
     let imgHeight = Shape.height;
@@ -1002,6 +992,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
       }
     }
     `;
+    this.MarkdownCode = `${json.plain(this.finallObj).replace(/px/g, 'px')}`;
     //console.log('finallObj', json.plain(this.finallObj).replace(/px/g, 'rpx'));
   }
   clearCanvas() {
@@ -1043,12 +1034,6 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
   }
   confirmImportCode() {
     let canvas_sprite = this.canvas_sprite;
-
-    /* const delay = ms =>
-      new Promise(resolve => {
-        clearTimeout(this.delayT);
-        this.delayT = setTimeout(resolve, ms);
-      }); */
     canvas_sprite.loadFromJSON(this.state.importCodeJson, async () => {
       this.setState({
         visibleImportCode: false
@@ -1058,9 +1043,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         const element = Objects[index];
         this.activeObject = element;
         this.changeActiveObjectValue();
-        //await delay(0);
         await this.updateObject();
-        //await delay(0);
       }
       this.setState({
         importCodeJson: ''
@@ -1101,8 +1084,14 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
           _config.undoFinishedStatus = 0;
           if (_config.currentStateIndex !== 0) {
             _config.undoStatus = true;
-            canvas_sprite.loadFromJSON(_config.canvasState[_config.currentStateIndex - 1], function() {
-              //var jsonData = JSON.parse(_config.canvasState[_config.currentStateIndex - 1]);
+            canvas_sprite.loadFromJSON(_config.canvasState[_config.currentStateIndex - 1], async function() {
+              let Objects = canvas_sprite.getObjects();
+              for (let index = 0; index < Objects.length; index++) {
+                const element = Objects[index];
+                that.activeObject = element;
+                that.changeActiveObjectValue();
+                await that.updateObject();
+              }
               canvas_sprite.renderAll();
               _config.undoStatus = false;
               _config.currentStateIndex -= 1;
@@ -1141,8 +1130,14 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         if (_config.canvasState.length > _config.currentStateIndex && _config.canvasState.length !== 0) {
           _config.redoFinishedStatus = 0;
           _config.redoStatus = true;
-          canvas_sprite.loadFromJSON(_config.canvasState[_config.currentStateIndex + 1], function() {
-            //var jsonData = JSON.parse(_config.canvasState[_config.currentStateIndex + 1]);
+          canvas_sprite.loadFromJSON(_config.canvasState[_config.currentStateIndex + 1], async function() {
+            let Objects = canvas_sprite.getObjects();
+            for (let index = 0; index < Objects.length; index++) {
+              const element = Objects[index];
+              that.activeObject = element;
+              that.changeActiveObjectValue();
+              await that.updateObject();
+            }
             canvas_sprite.renderAll();
             _config.redoStatus = false;
             _config.currentStateIndex += 1;
@@ -1172,26 +1167,16 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         <div className='main-container'>
           <div className='box'>
             <div className='btns'>
-              {/* <div className='btn'>
-                <Button type='primary' onClick={this.handerUndo}>
-                  撤销
-                </Button>
-              </div>
-              <div className='btn'>
-                <Button type='primary' onClick={this.handerRedo}>
-                  恢复
-                </Button>
-              </div> */}
               <div className='btn'>
                 <Button type='primary' onClick={this.copyCode}>
                   复制代码
                 </Button>
               </div>
-              {/* <div className='btn'>
+              <div className='btn'>
                 <Button type='primary' onClick={this.viewCode}>
                   查看代码
                 </Button>
-              </div> */}
+              </div>
               <div className='btn'>
                 <Button type='primary' onClick={this.exportCode}>
                   导出json
@@ -1402,7 +1387,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         >
           <ReactMarkdown
             source={`\`\`\`
-${this.miniCode}
+${this.MarkdownCode}
           `}
           />
         </Modal>
