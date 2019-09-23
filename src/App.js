@@ -70,9 +70,18 @@ class App extends React.Component {
     font.load(); */
     //this.confirmImportCode();
     this.addEventListener();
-    this.addShape(1);
-    this.addShape(2);
-    this.addShape(4);
+    //this.addShape(1);
+    this.addShape(3);
+    this.addShape(3);
+    this.addShape(3);
+    this.addShape(3);
+    this.addShape(3);
+    this.addShape(3);
+    this.addShape(3);
+    this.addShape(3);
+    this.addShape(3);
+    this.addShape(3);
+    //this.addShape(4);
     /* this.addShape(1);
     this.addShape(2);
     this.addShape(3);
@@ -735,21 +744,21 @@ class App extends React.Component {
       });
     });
   }
-  updateObject() {
+  async updateObject() {
     let type = this.activeObject.mytype;
     this.canvas_sprite.remove(this.activeObject);
     switch (type) {
       case 'textGroup':
-        this.addShape(1, 'update');
+        await this.addShape(1, 'update');
         break;
       case 'rect':
-        this.addShape(2, 'update');
+        await this.addShape(2, 'update');
         break;
       case 'image':
-        this.addShape(3, 'update');
+        await this.addShape(3, 'update');
         break;
       case 'qrcode':
-        this.addShape(4, 'update');
+        await this.addShape(4, 'update');
         break;
       default:
         break;
@@ -762,6 +771,7 @@ class App extends React.Component {
       visible: true
     });
     let type = this.activeObject.mytype;
+    if (!type) return;
     let item2 = this.activeObject;
     let width = `${(item2.width - item2.strokeWidth) * item2.scaleX}`;
     let height = `${(item2.height - item2.strokeWidth) * item2.scaleY}`;
@@ -863,6 +873,7 @@ class App extends React.Component {
         break;
     }
     let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
+    //console.log('currentOptionArr', currentOptionArr[index].css);
     currentOptionArr[index].css = css;
     this.setState({
       currentOptionArr
@@ -880,7 +891,6 @@ class App extends React.Component {
     function changeShadowTimes(shadow, times) {
       if (!shadow) return '';
       let arr = shadow.trim().split(/\s+/);
-      console.log('arr', arr);
       return `${arr[0] * times} ${arr[1] * times} ${arr[2] * times} ${arr[3]}`;
     }
     canvas_sprite.getObjects().forEach((item2, index) => {
@@ -1034,11 +1044,11 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
   confirmImportCode() {
     let canvas_sprite = this.canvas_sprite;
 
-    const delay = ms =>
+    /* const delay = ms =>
       new Promise(resolve => {
         clearTimeout(this.delayT);
         this.delayT = setTimeout(resolve, ms);
-      });
+      }); */
     canvas_sprite.loadFromJSON(this.state.importCodeJson, async () => {
       this.setState({
         visibleImportCode: false
@@ -1048,9 +1058,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         const element = Objects[index];
         this.activeObject = element;
         this.changeActiveObjectValue();
-        await delay(10);
-        this.updateObject();
-        await delay(10);
+        //await delay(0);
+        await this.updateObject();
+        //await delay(0);
       }
       this.setState({
         importCodeJson: ''
