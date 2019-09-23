@@ -298,11 +298,10 @@ class App extends React.Component {
       fontFamily,
       padding,
       [textDecoration]: true,
-      //lockUniScaling: true, //只能等比缩放
       textAlign,
       textStyle,
       shadow,
-      //angle: rotate,
+      myshadow: shadow,
       splitByGrapheme: true, //文字换行
       zIndex: 2,
       lineHeight,
@@ -402,6 +401,8 @@ class App extends React.Component {
       strokeWidth: borderWidth / 1,
       stroke: borderColor,
       fill: background,
+      shadow,
+      myshadow: shadow,
       lockScalingY: true
     });
     Shape.add(Rect);
@@ -411,75 +412,12 @@ class App extends React.Component {
       return function() {
         return fabric.util.object.extend(toObject.call(this), {
           mytype: 'textGroup',
-          oldText: text
+          oldText: text,
+          rx: borderRadius,
+          myshadow: shadow
         });
       };
     })(Shape.toObject);
-    /* Shape.on('scaling', function(e) {
-      let obj = this;
-      let width = obj.width;
-      let height = obj.height;
-      let w = obj.width * obj.scaleX;
-      let h = obj.height * obj.scaleY;
-      let oldText = obj.oldText;
-      Rect.set({
-        left: -(w - width / 2),
-        top: -(h - height / 2),
-        height: h,
-        width: w,
-        rx: borderRadius,
-        strokeWidth: borderWidth
-      });
-      textBox.set({
-        left: -(w - width / 2),
-        top: -(h - height / 2),
-        width,
-        height,
-        fontSize,
-        scaleX: 1,
-        scaleY: 1,
-        text: oldText
-      });
-      //控制行内文字
-      if (textBox.textLines.length > maxLines) {
-        let text = '';
-        for (let index = 0; index < maxLines; index++) {
-          const element = textBox.textLines[index];
-          if (index === maxLines - 1) {
-            text = text + element + '...';
-          } else {
-            text += element;
-          }
-        }
-        textBox.set({
-          text
-        });
-
-        if (textBox.textLines.length > maxLines) {
-          let text = '';
-          for (let index = 0; index < maxLines; index++) {
-            const element = textBox.textLines[index];
-            if (index === maxLines - 1) {
-              text = text + element.substring(0, element.length - 3) + '...';
-            } else {
-              text += element;
-            }
-          }
-          textBox.set({
-            text
-          });
-        }
-      }
-      obj.set({
-        height: h,
-        width: w,
-        scaleX: 1,
-        scaleY: 1,
-        originX: 'center'
-      });
-
-      that.canvas_sprite.renderAll();
-    }); */
     return Shape;
   }
   async addRectObject(index, action) {
@@ -674,6 +612,7 @@ class App extends React.Component {
       fill: background,
       angle: rotate,
       shadow,
+      myshadow: shadow,
       originX: 'center',
       originY: 'center',
       mytype: 'image',
@@ -707,7 +646,8 @@ class App extends React.Component {
           url,
           rx: borderRadius + borderWidth / 2,
           oldScaleX: width / imgWidth,
-          oldScaleY: height / imgHeight
+          oldScaleY: height / imgHeight,
+          myshadow: shadow
         });
       };
     })(group.toObject);
@@ -827,7 +767,7 @@ class App extends React.Component {
     let height = `${(item2.height - item2.strokeWidth) * item2.scaleY}`;
     let left = `${(item2.left / item2.scaleY - (item2.width - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`;
     let top = `${(item2.top / item2.scaleY - (item2.height - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`;
-    //console.log(item2.left / item2.scaleY, item2.left, item2.scaleY);
+    //console.log('item2.strokeWidth', `${item2.shadow}`, item2.scaleY);
     let css = {
       width,
       height,
@@ -839,7 +779,7 @@ class App extends React.Component {
       borderRadius: `${item2.rx * item2.scaleY}`,
       borderWidth: `${item2.strokeWidth * item2.scaleY}`,
       borderColor: `${item2.stroke}`,
-      shadow: `${item2.shadow}`
+      shadow: `${item2.myshadow}`
     };
     let index = '';
     switch (type) {
@@ -882,7 +822,7 @@ class App extends React.Component {
               textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
               fontFamily: `${ele.fontFamily}`,
               textAlign: `${ele.textAlign}`,
-              shadow: `${ele.shadow}`
+              shadow: `${item2.myshadow}`
             };
           }
         });
@@ -902,7 +842,8 @@ class App extends React.Component {
         css = {
           url: item2.url,
           ...css,
-          mode: `${item2.mode}`
+          mode: `${item2.mode}`,
+          shadow: `${item2.myshadow}`
         };
         break;
       case 'qrcode':
@@ -935,26 +876,37 @@ class App extends React.Component {
   generateCode() {
     let canvas_sprite = this.canvas_sprite;
     this.views = [];
+    let times = this.currentOptionArr[0].css.times;
+    function changeShadowTimes(shadow, times) {
+      if (!shadow) return '';
+      let arr = shadow.trim().split(/\s+/);
+      console.log('arr', arr);
+      return `${arr[0] * times} ${arr[1] * times} ${arr[2] * times} ${arr[3]}`;
+    }
     canvas_sprite.getObjects().forEach((item2, index) => {
       let view = {};
-      let width = item2.width * item2.scaleX;
-      let height = item2.height * item2.scaleY;
+      let width = item2.width * item2.scaleX * times;
+      let height = item2.height * item2.scaleY * times;
+      let left = item2.left * times;
+      let top = item2.top * times;
+      let strokeWidth = item2.strokeWidth * times;
+
       let css = {
         color: `${item2.color}`,
         background: `${item2.fill}`,
         width: `${width}px`,
         height: `${height}px`,
-        top: `${item2.top - height / 2 + item2.strokeWidth / 2}px`,
-        left: `${item2.left - width / 2 + item2.strokeWidth / 2}px`,
+        top: `${top - height / 2 + strokeWidth / 2}px`,
+        left: `${left - width / 2 + strokeWidth / 2}px`,
         rotate: `${item2.angle}`,
-        borderRadius: `${item2.rx * item2.scaleY}px`,
-        borderWidth: `${item2.strokeWidth ? item2.strokeWidth * item2.scaleY + 'px' : ''}`,
+        borderRadius: `${item2.rx * item2.scaleY * times}px`,
+        borderWidth: `${strokeWidth ? strokeWidth * item2.scaleY + 'px' : ''}`,
         borderColor: `${item2.stroke}`,
         //align: `${item2.align}`,
-        shadow: `${item2.shadow}`
+        shadow: changeShadowTimes(item2.myshadow, times)
       };
       //console.log('canvas_sprite.toObject(item2)', canvas_sprite.toObject(item2));
-      console.log('height', height);
+      //console.log('height', height);
       let type = item2.mytype;
       if (type === 'image') {
         delete css.color;
@@ -965,12 +917,11 @@ class App extends React.Component {
           css: {
             ...css,
             mode: `${item2.mode}`,
-            width: `${(item2.width - item2.strokeWidth) * item2.scaleX}px`,
-            height: `${(item2.height - item2.strokeWidth) * item2.scaleY}px`
+            width: `${(item2.width - item2.strokeWidth) * item2.scaleX * times}px`,
+            height: `${(item2.height - item2.strokeWidth) * item2.scaleY * times}px`
           }
         };
       } else if (type === 'qrcode') {
-        //delete css.borderRadius;
         delete css.borderWidth;
         delete css.borderColor;
         delete css.shadow;
@@ -979,21 +930,12 @@ class App extends React.Component {
           content: `${item2.url}`,
           css: {
             ...css,
-            background: item2.background /* ,
-              padding: `${item2.padding}rpx` */
+            background: item2.background
           }
         };
       } else if (type === 'textGroup') {
         item2._objects.forEach(ele => {
           if (ele.type === 'rect') {
-            /* view = {
-              ...view,
-              type: 'text',
-              css: {
-                ...css,
-                ...view.css,
-              }
-            }; */
           } else {
             view = {
               ...view,
@@ -1002,18 +944,17 @@ class App extends React.Component {
               css: {
                 ...css,
                 ...view.css,
-                width: `${ele.width}px`,
+                width: `${ele.width * times}px`,
                 color: ele.fill,
-                padding: `${ele.padding}px`,
-                fontSize: `${ele.fontSize}px`,
+                padding: `${ele.padding * times}px`,
+                fontSize: `${ele.fontSize * times}px`,
                 fontWeight: `${ele.fontWeight}`,
                 maxLines: `${ele.maxLines}`,
-                lineHeight: `${ele.lineHeight * 1.11 * ele.fontSize}px`,
+                lineHeight: `${ele.lineHeight * 1.11 * ele.fontSize * times}px`,
                 textStyle: `${ele.textStyle}`,
                 textDecoration: `${ele.textDecoration === 'linethrough' ? 'line-through' : ele.textDecoration}`,
                 fontFamily: `${ele.fontFamily}`,
-                textAlign: `${ele.textAlign}`,
-                shadow: `${ele.shadow}`
+                textAlign: `${ele.textAlign}`
               }
             };
           }
@@ -1029,17 +970,16 @@ class App extends React.Component {
           css: {
             ...css,
             color: item2.fill,
-            width: `${(item2.width - item2.strokeWidth) * item2.scaleX}px`,
-            height: `${(item2.height - item2.strokeWidth) * item2.scaleY}px`,
-            shadow: `${item2.myshadow}`
+            width: `${(item2.width - item2.strokeWidth) * item2.scaleX * times}px`,
+            height: `${(item2.height - item2.strokeWidth) * item2.scaleY * times}px`
           }
         };
       }
       this.views.push(view);
     });
     this.finallObj = {
-      width: `${canvas_sprite.width}px`,
-      height: `${canvas_sprite.height}px`,
+      width: `${canvas_sprite.width * times}px`,
+      height: `${canvas_sprite.height * times}px`,
       background: canvas_sprite.backgroundColor,
       views: this.views
     };
@@ -1305,6 +1245,8 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                                   } else if (item2 === 'backgroundColor') {
                                     this.canvas_sprite.setBackgroundColor(event.target.value);
                                     this.canvas_sprite.renderAll();
+                                  } else if (item2 === 'times') {
+                                    this.currentOptionArr[i].css[item2] = event.target.value;
                                   }
                                 }
                               }}

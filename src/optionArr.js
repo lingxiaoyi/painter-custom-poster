@@ -6,7 +6,8 @@ let optionArr = [
     css: {
       width: '654',
       height: '1000',
-      backgroundColor: '#f8f8f8'
+      backgroundColor: '#f8f8f8',
+      times: '1'
     }
   },
   {
@@ -29,10 +30,10 @@ let optionArr = [
       borderRadius: 0,
       borderWidth: 1,
       borderColor: '#000000',
-      shadow: '10 10 5 #888888',
+      shadow: '  10 10    5    #888888   ',
       textStyle: ['fill', 'stroke'], //fill： 填充样式，stroke：镂空样式
       textAlign: ['left', 'center', 'right'], //文字的对齐方式，分为 left, center, right
-      fontFamily: '' //webfont
+      fontFamily: '' //
     }
   },
   {
@@ -67,7 +68,7 @@ let optionArr = [
       borderRadius: 50,
       borderWidth: 2,
       borderColor: '#000000',
-      shadow: ''
+      shadow: '10 10 5 #888888' //阴影
     }
   },
   {
