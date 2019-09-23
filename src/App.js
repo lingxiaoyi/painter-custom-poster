@@ -179,26 +179,29 @@ class App extends React.Component {
   @keydown(ALL_KEYS)
   beginEdit(event) {
     let that = this;
-    event.preventDefault();
     if (that.activeObject) {
       //console.log('that.activeObject', that.activeObject);
       if (event.which === 37) {
         //左
+        event.preventDefault();
         that.activeObject.set({
           left: that.activeObject.left - 1
         });
       } else if (event.which === 39) {
         //右
+        event.preventDefault();
         that.activeObject.set({
           left: that.activeObject.left + 1
         });
       } else if (event.which === 40) {
         //上
+        event.preventDefault();
         that.activeObject.set({
           top: that.activeObject.top + 1
         });
       } else if (event.which === 38) {
         //下
+        event.preventDefault();
         that.activeObject.set({
           top: that.activeObject.top - 1
         });
@@ -243,7 +246,6 @@ class App extends React.Component {
     this.canvas_sprite.add(Shape);
   }
   async addTextObject(index, action) {
-    const that = this;
     let currentOptionArr;
     if (action === 'update') {
       currentOptionArr = this.state.currentOptionArr;
@@ -283,15 +285,15 @@ class App extends React.Component {
     rotate = rotate / 1;
     fontSize = fontSize / 1;
     maxLines = maxLines / 1;
-    padding = padding / 1;
+    padding = 0 /*  padding / 1 */;
     lineHeight = lineHeight / 1; //和painter调试得出的值
     let Shape;
     let config = {
       width, //文字的高度随行高
       fill: color,
       fontWeight,
-      left: left, //距离画布左侧的距离，单位是像素
-      top: top,
+      left: 0, //距离画布左侧的距离，单位是像素
+      top: 0,
       fontSize, //文字大小
       fontFamily,
       padding,
@@ -307,7 +309,9 @@ class App extends React.Component {
       editable: true,
       maxLines: maxLines,
       textDecoration: textDecoration,
-      lockScalingY: true
+      lockScalingY: true,
+      originX: 'center',
+      originY: 'center'
     };
     if (textStyle === 'stroke') {
       config = {
@@ -356,50 +360,53 @@ class App extends React.Component {
         });
       }
     }
-    let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2 + borderWidth * 2;
-    width = textBox.width + padding * 2 + borderWidth * 2;
-    left = textBox.left - padding;
-    top = css.top - padding;
+    let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2;
+    left = css.left - padding + borderWidth;
+    top = css.top - padding + borderWidth;
     /*  textBox.set({
       top: top + height / 2
     }); */
+
     let Rect = new fabric.Rect({
-      width,
-      height,
-      left, //距离画布左侧的距离，单位是像素
-      top,
-      padding,
+      width: width + borderWidth,
+      height: height + borderWidth,
+      left: 0, //距离画布左侧的距离，单位是像素
+      top: 0,
+      originX: 'center',
+      originY: 'center',
+      //padding,
       rx: borderRadius,
-      //ry:borderRadius,
       strokeWidth: borderWidth / 1,
       stroke: borderColor,
-      fill: background,
-      //angle: rotate,
+      fill: 'rgba(0,0,0,0)',
       shadow,
       selectable: false
     });
+    //this.canvas_sprite.add(Rect);
     let gradientOption = '';
     if (GD.api.isGradient(background)) {
       gradientOption = GD.api.doGradient(background, width, height);
     }
     if (gradientOption) Rect.setGradient('fill', gradientOption);
-    Shape = new fabric.Group([Rect, textBox], {
-      width,
-      height,
+    Shape = new fabric.Group([], {
+      width: width + borderWidth,
+      height: height + borderWidth,
       left: left + width / 2, //距离画布左侧的距离，单位是像素
       top: top + height / 2,
       angle: rotate,
       mytype: 'textGroup',
-      lockScalingY: true,
       oldText: text,
       originX: 'center',
       originY: 'center',
-      centeredRotation: true,
       rx: borderRadius,
       strokeWidth: borderWidth / 1,
       stroke: borderColor,
-      fill: background
+      fill: background,
+      lockScalingY: true
     });
+    Shape.add(Rect);
+    Shape.add(textBox);
+
     Shape.toObject = (function(toObject) {
       return function() {
         return fabric.util.object.extend(toObject.call(this), {
@@ -408,7 +415,7 @@ class App extends React.Component {
         });
       };
     })(Shape.toObject);
-    Shape.on('scaling', function(e) {
+    /* Shape.on('scaling', function(e) {
       let obj = this;
       let width = obj.width;
       let height = obj.height;
@@ -472,7 +479,7 @@ class App extends React.Component {
       });
 
       that.canvas_sprite.renderAll();
-    });
+    }); */
     return Shape;
   }
   async addRectObject(index, action) {
@@ -818,12 +825,14 @@ class App extends React.Component {
     let item2 = this.activeObject;
     let width = `${(item2.width - item2.strokeWidth) * item2.scaleX}`;
     let height = `${(item2.height - item2.strokeWidth) * item2.scaleY}`;
+    let left = `${(item2.left / item2.scaleY - (item2.width - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`;
+    let top = `${(item2.top / item2.scaleY - (item2.height - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`;
     //console.log(item2.left / item2.scaleY, item2.left, item2.scaleY);
     let css = {
       width,
       height,
-      left: `${(item2.left / item2.scaleY - (item2.width - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`,
-      top: `${(item2.top / item2.scaleY - (item2.height - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`,
+      left,
+      top,
       color: `${item2.color}`,
       background: `${item2.fill}`,
       rotate: `${item2.angle}`,
@@ -839,22 +848,17 @@ class App extends React.Component {
         item2._objects.forEach(ele => {
           let css2 = {
             text: '',
-            width:`${item2.width * item2.scaleX - item2.strokeWidth * 2}`,
-            maxLines: '',
+            width,
             lineHeight: '',
-            left: `${(item2.left / item2.scaleY - (item2.width - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(
-              2
-            )}`,
-            top: `${(item2.top / item2.scaleY - (item2.height - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(
-              2
-            )}`,
+            left,
+            top,
             color: `${item2.color}`,
             background: `${item2.fill}`,
             fontSize: '',
             fontWeight: '',
             textDecoration: '',
             rotate: `${item2.angle}`,
-            padding: 0,
+            //padding: 0,
             borderRadius: `${item2.rx * item2.scaleY}`,
             borderWidth: `${item2.strokeWidth * item2.scaleY}`,
             borderColor: `${item2.stroke}`,
@@ -863,15 +867,7 @@ class App extends React.Component {
             textAlign: '',
             fontFamily: ''
           };
-          let reactCss = {};
           if (ele.type === 'rect') {
-            reactCss = {
-              width: `${item2.width * item2.scaleX - ele.strokeWidth * 2}`,
-              background: `${ele.fill}`,
-              borderRadius: `${ele.rx}`,
-              borderWidth: `${ele.strokeWidth}`,
-              borderColor: `${ele.stroke}`
-            };
           } else {
             css = {
               ...css2,
@@ -990,20 +986,14 @@ class App extends React.Component {
       } else if (type === 'textGroup') {
         item2._objects.forEach(ele => {
           if (ele.type === 'rect') {
-            view = {
+            /* view = {
               ...view,
               type: 'text',
               css: {
                 ...css,
                 ...view.css,
-                left: `${item2.left - width / 2 + ele.padding + ele.strokeWidth}px`,
-                top: `${item2.top - height / 2 + ele.padding + ele.strokeWidth}px`,
-                background: `${ele.fill}`,
-                borderRadius: `${ele.rx}px`,
-                borderWidth: `${ele.strokeWidth ? ele.strokeWidth + 'px' : ''}`,
-                borderColor: `${ele.stroke}`
               }
-            };
+            }; */
           } else {
             view = {
               ...view,
@@ -1013,7 +1003,6 @@ class App extends React.Component {
                 ...css,
                 ...view.css,
                 width: `${ele.width}px`,
-                //height: `${ele.height}px`,
                 color: ele.fill,
                 padding: `${ele.padding}px`,
                 fontSize: `${ele.fontSize}px`,

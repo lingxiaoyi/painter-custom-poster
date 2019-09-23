@@ -16,7 +16,7 @@ let optionArr = [
       text: '别跟我谈感情，谈感情伤钱。',
       width: 200,
       maxLines: 2, //最大行数
-      lineHeight: 2,//行间距
+      lineHeight: 1.3,//行间距
       left: 0,
       top: 0,
       color: '#ff0000',
@@ -25,8 +25,8 @@ let optionArr = [
       fontWeight: ['normal', 'bold'], //文字加粗 可以不写
       textDecoration: ['none', 'overline', 'underline', 'linethrough'], //overline underline line-through 可组合
       rotate: 0,
-      padding: 0,
-      borderRadius: 1,
+      //padding: 0,
+      borderRadius: 0,
       borderWidth: 1,
       borderColor: '#000000',
       shadow: '10 10 5 #888888',
@@ -43,13 +43,13 @@ let optionArr = [
       //background: 'radial-gradient(rgba(0, 0, 0, 0) 5%, #0ff 15%, #f0f 60%)',
       width: 200,
       height: 122, //高度,没有的话就自适应
-      left: 200,
+      left: 202,
       top: 0,
-      background: '#000',
+      background: '#ffffff',
       rotate: 0,
       borderRadius: 0,
-      borderWidth: 0,
-      borderColor: '#000000',
+      borderWidth: 1,
+      borderColor: '#ff0000',
       shadow: '10 10 5 #888888' //阴影
     }
   },
