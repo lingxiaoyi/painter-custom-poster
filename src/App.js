@@ -9,7 +9,8 @@ import ReactMarkdown from 'react-markdown';
 import json from 'format-json';
 import { optionArr, newOptionArr } from './optionArr';
 import './App.scss';
-import exampleData from './example/example';
+import exampleData from './example/index';
+console.log('exampleData', exampleData);
 //import importCodeJson from './importCodeJson';
 //var FontFaceObserver = require('fontfaceobserver');
 const GD = require('./gradient.js');
@@ -1275,6 +1276,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         </div>
         <div className='example'>
           {exampleData.map((item, i) => {
+            console.log('item', item);
             return (
               <div
                 className='li'
