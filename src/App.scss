@@ -66,9 +66,21 @@ input {
     }
   }
   .example {
-    width: 400px;
+    width: 440px;
     min-height: 300px;
-    background: #eeeeee;
+    background: #e9fffe;
+    display: flex;
+    justify-content: space-between;
+    .li {
+      width: 200px;
+      height: 306px;
+      margin-top: 10px;
+      cursor: pointer;
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
   }
 }
 .option {

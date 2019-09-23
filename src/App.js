@@ -285,7 +285,10 @@ class App extends React.Component {
     maxLines = maxLines / 1;
     padding = 0 /*  padding / 1 */;
     lineHeight = lineHeight / 1; //和painter调试得出的值
-    shadow = shadow.trim().split(/\s+/).join(' ');
+    shadow = shadow
+      .trim()
+      .split(/\s+/)
+      .join(' ');
     let Shape;
     let config = {
       width, //文字的高度随行高
@@ -447,7 +450,10 @@ class App extends React.Component {
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
-    shadow = shadow.trim().split(/\s+/).join(' ');
+    shadow = shadow
+      .trim()
+      .split(/\s+/)
+      .join(' ');
     let group = new fabric.Group([], {
       left: left + width / 2 + borderWidth,
       top: top + height / 2 + borderWidth,
@@ -539,7 +545,10 @@ class App extends React.Component {
     borderRadius = borderRadius / 1;
     borderWidth = borderWidth / 1;
     rotate = rotate / 1;
-    shadow = shadow.trim().split(/\s+/).join(' ');
+    shadow = shadow
+      .trim()
+      .split(/\s+/)
+      .join(' ');
     let Shape = await this.loadImageUrl(url);
     let imgWidth = Shape.width;
     let imgHeight = Shape.height;
@@ -1276,18 +1285,28 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         </div>
         <div className='example'>
           {exampleData.map((item, i) => {
-            console.log('item', item);
+            //console.log('item', item);
             return (
               <div
                 className='li'
                 key={i}
                 onClick={() => {
-                  this.setState(
-                    {
-                      importCodeJson: item.json
+                  let that = this;
+                  Modal.confirm({
+                    title: '提示',
+                    content: '确定要导入这个模板吗?',
+                    okText: '确认',
+                    cancelText: '取消',
+                    onOk() {
+                      that.setState(
+                        {
+                          importCodeJson: item.json
+                        },
+                        that.confirmImportCode
+                      );
                     },
-                    this.confirmImportCode
-                  );
+                    onCancel() {}
+                  });
                 }}
               >
                 <img src={item.src} alt='' />
