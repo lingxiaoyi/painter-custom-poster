@@ -12,15 +12,15 @@ self.__precacheManifest = [
     "url": "/painter-custom-poster/static/js/runtime~main.cac4ec46.js"
   },
   {
-    "revision": "26be83218beac7972416",
-    "url": "/painter-custom-poster/static/js/main.74511bb7.chunk.js"
+    "revision": "93194cf91cd08d0c3fb8",
+    "url": "/painter-custom-poster/static/js/main.404cf67f.chunk.js"
   },
   {
     "revision": "593c632d6cdfc2380a88",
     "url": "/painter-custom-poster/static/js/2.e98d13a4.chunk.js"
   },
   {
-    "revision": "26be83218beac7972416",
+    "revision": "93194cf91cd08d0c3fb8",
     "url": "/painter-custom-poster/static/css/main.75a8382c.chunk.css"
   },
   {
@@ -28,7 +28,7 @@ self.__precacheManifest = [
     "url": "/painter-custom-poster/static/css/2.6522b017.chunk.css"
   },
   {
-    "revision": "9774c90b2131d370fc4491fec4199583",
+    "revision": "fe54713615269f87e8355d47ba5bbf5c",
     "url": "/painter-custom-poster/index.html"
   }
 ];
