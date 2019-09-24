@@ -10,7 +10,6 @@ import json from 'format-json';
 import { optionArr, newOptionArr } from './optionArr';
 import './App.scss';
 import exampleData from './example/index';
-console.log('exampleData', exampleData);
 //import importCodeJson from './importCodeJson';
 //var FontFaceObserver = require('fontfaceobserver');
 const GD = require('./gradient.js');
@@ -157,6 +156,10 @@ class App extends React.Component {
       if (e.target) {
         that.activeObject = e.target;
         that.changeActiveObjectValue();
+      } else {
+        that.setState({
+          visible: false
+        });
       }
     });
     //解决放大缩小元素位置不对的问题
@@ -241,6 +244,9 @@ class App extends React.Component {
     }
     this.canvas_sprite.setActiveObject(Shape);
     this.activeObject = Shape;
+    this.setState({
+      visible: true
+    });
     this.canvas_sprite.add(Shape);
   }
   async addTextObject(index, action) {
@@ -767,11 +773,11 @@ class App extends React.Component {
   }
 
   changeActiveObjectValue() {
+    let type = this.activeObject.mytype;
+    if (!type) return;
     this.setState({
       visible: true
     });
-    let type = this.activeObject.mytype;
-    if (!type) return;
     let item2 = this.activeObject;
     let width = `${(item2.width - item2.strokeWidth) * item2.scaleX}`;
     let height = `${(item2.height - item2.strokeWidth) * item2.scaleY}`;
@@ -799,6 +805,7 @@ class App extends React.Component {
           let css2 = {
             text: '',
             width,
+            maxLines: ``,
             lineHeight: '',
             left,
             top,
@@ -825,7 +832,7 @@ class App extends React.Component {
               maxLines: `${ele.maxLines}`,
               lineHeight: `${ele.lineHeight}`,
               color: ele.fill,
-              padding: `${ele.padding}`,
+              //padding: `${ele.padding}`,
               fontSize: `${ele.fontSize}`,
               fontWeight: `${ele.fontWeight}`,
               textStyle: `${ele.textStyle}`,
@@ -1171,10 +1178,25 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     const { visible, visibleCode, visibleImportCode, currentOptionArr, currentObjectType } = this.state;
     return (
       <div id='main'>
+        <div
+          className='placeholder'
+          onClick={() => {
+            this.setState({
+              visible: false
+            });
+          }}
+        ></div>
         <div className='slide'>
           <canvas id='merge' width='700' height='1000' />
         </div>
-        <div className='main-container'>
+        <div
+          className='main-container'
+          onClick={() => {
+            this.setState({
+              visible: false
+            });
+          }}
+        >
           <div className='box'>
             <div className='btns'>
               <div className='btn'>
@@ -1284,38 +1306,43 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
           </div>
         </div>
         <div className='example'>
-          {exampleData.map((item, i) => {
-            //console.log('item', item);
-            return (
-              <div
-                className='li'
-                key={i}
-                onClick={() => {
-                  let that = this;
-                  Modal.confirm({
-                    title: '提示',
-                    content: '确定要导入这个模板吗?',
-                    okText: '确认',
-                    cancelText: '取消',
-                    onOk() {
-                      that.setState(
-                        {
-                          importCodeJson: item.json
-                        },
-                        that.confirmImportCode
-                      );
-                    },
-                    onCancel() {}
-                  });
-                }}
-              >
-                <img src={item.src} alt='' />
-              </div>
-            );
-          })}
+          <div className='example-header'>
+            <div className='example-header-h3'>例子展示</div>
+          </div>
+          <div className='ul'>
+            {exampleData.map((item, i) => {
+              //console.log('item', item);
+              return (
+                <div
+                  className='li'
+                  key={i}
+                  onClick={() => {
+                    let that = this;
+                    Modal.confirm({
+                      title: '提示',
+                      content: '确定要导入这个模板吗?',
+                      okText: '确认',
+                      cancelText: '取消',
+                      onOk() {
+                        that.setState(
+                          {
+                            importCodeJson: item.json
+                          },
+                          that.confirmImportCode
+                        );
+                      },
+                      onCancel() {}
+                    });
+                  }}
+                >
+                  <img src={item.src} alt='' />
+                </div>
+              );
+            })}
+          </div>
         </div>
         <Drawer
-          title='修改当前激活对象'
+          title='当前激活对象'
           width={400}
           onClose={this.onClose}
           visible={visible}

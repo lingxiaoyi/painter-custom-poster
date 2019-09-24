@@ -46,7 +46,7 @@ let optionArr = [
       height: 122, //高度,没有的话就自适应
       left: 452,
       top: 0,
-      background: '#000000',
+      background: '#f8d4d4',
       rotate: 0,
       borderRadius: 0,
       borderWidth: 0,
