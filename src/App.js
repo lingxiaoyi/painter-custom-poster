@@ -451,6 +451,7 @@ class App extends React.Component {
       currentOptionArr = this.currentOptionArr;
     }
     let { css } = currentOptionArr[index];
+    //console.log('css', css);
     let {
       width,
       height,
@@ -1066,6 +1067,12 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
   }
   confirmImportCode() {
     let canvas_sprite = this.canvas_sprite;
+    //延时函数 解决setstate异步加载问题
+    const delay = ms =>
+      new Promise(resolve => {
+        clearTimeout(this.delayT);
+        this.delayT = setTimeout(resolve, ms);
+      });
     canvas_sprite.loadFromJSON(this.state.importCodeJson, async () => {
       this.setState({
         visibleImportCode: false
@@ -1075,6 +1082,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         const element = Objects[index];
         this.activeObject = element;
         this.changeActiveObjectValue();
+        await delay(0);
         await this.updateObject();
       }
       this.setState({
@@ -1422,7 +1430,6 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                           {!_.isArray(optionArr[i].css[item2]) && item2 === 'text' && (
                             <TextArea
                               defaultValue={item.css[item2]}
-                              value={item.css[item2]}
                               onChange={event => {
                                 let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
                                 currentOptionArr[i].css[item2] = event.target.value;
