@@ -4,7 +4,7 @@ import _ from 'lodash';
 import jrQrcode from 'jr-qrcode';
 import { Button, Input, message, Select, Modal, Drawer, Radio } from 'antd';
 import copy from 'copy-to-clipboard';
-import keydown, { ALL_KEYS } from 'react-keydown';
+import keydown from 'react-keydown';
 import ReactMarkdown from 'react-markdown';
 import json from 'format-json';
 import { optionArr, newOptionArr } from './optionArr';
@@ -51,11 +51,11 @@ class App extends React.Component {
     this.state = {
       redoButtonStatus: '',
       undoButtonStatus: '',
-      currentOptionArr: newOptionArr, //当前可设置的数组的值
+      currentOptionArr: _.cloneDeep(newOptionArr), //当前可设置的数组的值
       currentObjectType: 'text', //当前要添加对象的类型
       importCodeJson: ''
     };
-    this.currentOptionArr = newOptionArr; //当前图像数据集合
+    this.currentOptionArr = _.cloneDeep(newOptionArr); //当前图像数据集合
     this.views = []; //所有元素的信息
     this.canvas_sprite = ''; //渲图片的canvas对象
     this.height = 300; //固定死
@@ -177,10 +177,10 @@ class App extends React.Component {
       that.updateCanvasState();
     });
   }
-  @keydown(ALL_KEYS)
+  @keydown(['ctrl+left', 'ctrl+right', 'ctrl+up', 'ctrl+down', 'ctrl+z', 'ctrl+y', 'delete', '[', ']'])
   beginEdit(event) {
     let that = this;
-    if (that.activeObject) {
+    if (that.activeObject.type) {
       //console.log('that.activeObject', that.activeObject);
       if (event.which === 37) {
         //左
@@ -188,38 +188,54 @@ class App extends React.Component {
         that.activeObject.set({
           left: that.activeObject.left - 1
         });
+        this.changeActiveObjectValue();
       } else if (event.which === 39) {
         //右
         event.preventDefault();
         that.activeObject.set({
           left: that.activeObject.left + 1
         });
+        this.changeActiveObjectValue();
       } else if (event.which === 40) {
         //上
         event.preventDefault();
         that.activeObject.set({
           top: that.activeObject.top + 1
         });
+        this.changeActiveObjectValue();
       } else if (event.which === 38) {
         //下
         event.preventDefault();
         that.activeObject.set({
           top: that.activeObject.top - 1
         });
+        this.changeActiveObjectValue();
+      } else if (event.which === 221) {
+        //[ 层级降低
+        event.preventDefault();
+        this.canvas_sprite.discardActiveObject();
+        that.activeObject.bringForward(true);
+        this.changeActiveObjectValue();
+      } else if (event.which === 219) {
+        //] 层级提高
+        event.preventDefault();
+        this.canvas_sprite.discardActiveObject();
+        that.activeObject.sendBackwards(true);
+        this.changeActiveObjectValue();
       } else if (event.which === 90) {
         //ctrl+z
         that.handerUndo();
+        this.changeActiveObjectValue();
       } else if (event.which === 89) {
         //ctrl+y
         that.handerRedo();
+        this.changeActiveObjectValue();
       } else if (event.which === 46) {
         //delete
         this.canvas_sprite.remove(that.activeObject);
       }
-      this.changeActiveObjectValue();
       this.canvas_sprite.renderAll();
     }
-    //console.log('event', event.which);
     // Start editing
   }
   async addShape(index, action) {
@@ -311,7 +327,6 @@ class App extends React.Component {
       shadow,
       myshadow: shadow,
       splitByGrapheme: true, //文字换行
-      zIndex: 2,
       lineHeight,
       editable: true,
       maxLines: maxLines,
@@ -1178,14 +1193,42 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     const { visible, visibleCode, visibleImportCode, currentOptionArr, currentObjectType } = this.state;
     return (
       <div id='main'>
-        <div
-          className='placeholder'
-          onClick={() => {
-            this.setState({
-              visible: false
-            });
-          }}
-        ></div>
+        <div className='example'>
+          <div className='example-header'>
+            <div className='example-header-h3'>例子展示</div>
+          </div>
+          <div className='ul'>
+            {exampleData.map((item, i) => {
+              //console.log('item', item);
+              return (
+                <div
+                  className='li'
+                  key={i}
+                  onClick={() => {
+                    let that = this;
+                    Modal.confirm({
+                      title: '提示',
+                      content: '确定要导入这个模板吗?',
+                      okText: '确认',
+                      cancelText: '取消',
+                      onOk() {
+                        that.setState(
+                          {
+                            importCodeJson: item.json
+                          },
+                          that.confirmImportCode
+                        );
+                      },
+                      onCancel() {}
+                    });
+                  }}
+                >
+                  <img src={item.src} alt='' />
+                </div>
+              );
+            })}
+          </div>
+        </div>
         <div className='slide'>
           <canvas id='merge' width='700' height='1000' />
         </div>
@@ -1229,6 +1272,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                   value={currentObjectType}
                   onChange={e => {
                     this.setState({ currentObjectType: e.target.value });
+                    this.currentOptionArr = _.cloneDeep(newOptionArr);
                   }}
                 >
                   {optionArr.map((item, i) => {
@@ -1259,8 +1303,28 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                       return (
                         <div className='row' key={i2}>
                           <div className='h3'>{item2} </div>
-                          {!_.isArray(item.css[item2]) && (
+                          {!_.isArray(item.css[item2]) && item2 !== 'text' && (
                             <Input
+                              defaultValue={item.css[item2]}
+                              onChange={event => {
+                                this.currentOptionArr[i].css[item2] = event.target.value;
+                                if (item.type === 'canvas') {
+                                  if (item2 === 'width') {
+                                    this.canvas_sprite.setWidth(event.target.value);
+                                  } else if (item2 === 'height') {
+                                    this.canvas_sprite.setHeight(event.target.value);
+                                  } else if (item2 === 'backgroundColor') {
+                                    this.canvas_sprite.setBackgroundColor(event.target.value);
+                                    this.canvas_sprite.renderAll();
+                                  } else if (item2 === 'times') {
+                                    this.currentOptionArr[i].css[item2] = event.target.value;
+                                  }
+                                }
+                              }}
+                            />
+                          )}
+                          {!_.isArray(item.css[item2]) && item2 === 'text' && (
+                            <TextArea
                               defaultValue={item.css[item2]}
                               onChange={event => {
                                 this.currentOptionArr[i].css[item2] = event.target.value;
@@ -1305,42 +1369,14 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
             })}
           </div>
         </div>
-        <div className='example'>
-          <div className='example-header'>
-            <div className='example-header-h3'>例子展示</div>
-          </div>
-          <div className='ul'>
-            {exampleData.map((item, i) => {
-              //console.log('item', item);
-              return (
-                <div
-                  className='li'
-                  key={i}
-                  onClick={() => {
-                    let that = this;
-                    Modal.confirm({
-                      title: '提示',
-                      content: '确定要导入这个模板吗?',
-                      okText: '确认',
-                      cancelText: '取消',
-                      onOk() {
-                        that.setState(
-                          {
-                            importCodeJson: item.json
-                          },
-                          that.confirmImportCode
-                        );
-                      },
-                      onCancel() {}
-                    });
-                  }}
-                >
-                  <img src={item.src} alt='' />
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <div
+          className='placeholder'
+          onClick={() => {
+            this.setState({
+              visible: false
+            });
+          }}
+        ></div>
         <Drawer
           title='当前激活对象'
           width={400}
@@ -1365,8 +1401,26 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                       return (
                         <div className='row' key={i2}>
                           <div className='h3'>{item2} </div>
-                          {!_.isArray(optionArr[i].css[item2]) && (
+                          {!_.isArray(optionArr[i].css[item2]) && item2 !== 'text' && (
                             <Input
+                              defaultValue={item.css[item2]}
+                              value={item.css[item2]}
+                              onChange={event => {
+                                let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
+                                currentOptionArr[i].css[item2] = event.target.value;
+                                this.setState(
+                                  {
+                                    currentOptionArr
+                                  },
+                                  () => {
+                                    this.updateObject();
+                                  }
+                                );
+                              }}
+                            />
+                          )}
+                          {!_.isArray(optionArr[i].css[item2]) && item2 === 'text' && (
+                            <TextArea
                               defaultValue={item.css[item2]}
                               value={item.css[item2]}
                               onChange={event => {

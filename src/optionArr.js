@@ -19,7 +19,7 @@ let optionArr = [
       maxLines: 2, //最大行数
       lineHeight: 1.3,//行间距
       left: 0,
-      top: 0,
+      top: 250,
       color: '#ff0000',
       background: 'rgba(0,0,0,0)',
       fontSize: 30,
@@ -28,9 +28,9 @@ let optionArr = [
       rotate: 0,
       //padding: 0,
       borderRadius: 0,
-      borderWidth: 1,
+      borderWidth: 0,
       borderColor: '#000000',
-      shadow: '  10 10    5    #888888   ',
+      shadow: '', // 10 10 5 #888888
       textStyle: ['fill', 'stroke'], //fill： 填充样式，stroke：镂空样式
       textAlign: ['left', 'center', 'right'], //文字的对齐方式，分为 left, center, right
       fontFamily: '' //
@@ -45,7 +45,7 @@ let optionArr = [
       width: 200,
       height: 122, //高度,没有的话就自适应
       left: 452,
-      top: 0,
+      top:250,
       background: '#f8d4d4',
       rotate: 0,
       borderRadius: 0,
@@ -60,15 +60,15 @@ let optionArr = [
     css: {
       url: 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg',
       mode: ['scaleToFill', 'aspectFill', 'auto'],
-      width: 400,
-      height: 200, //高度,没有的话就自适应
-      left: 0,
-      top: 300,
+      width: 200,
+      height: 100, //高度,没有的话就自适应
+      left: 200,
+      top: 400,
       rotate: 0,
-      borderRadius: 10,
+      borderRadius: 0,
       borderWidth: 0,
       borderColor: '#000000',
-      shadow: '10 10 10 #888888' //阴影
+      shadow: '' //阴影
     }
   },
   {
@@ -78,7 +78,7 @@ let optionArr = [
       url: '哈哈哈',
       width: 200,
       left: 454,
-      top: 303,
+      top: 403,
       color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
       background: '#ffffff', //文字区域背景色
       rotate: 0,
