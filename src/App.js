@@ -1432,7 +1432,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                           )}
                           {!_.isArray(optionArr[i].css[item2]) && item2 === 'text' && (
                             <TextArea
-                              defaultValue={item.css[item2]}
+                              value={item.css[item2]}
                               onChange={event => {
                                 let currentOptionArr = _.cloneDeep(this.state.currentOptionArr);
                                 currentOptionArr[i].css[item2] = event.target.value;
