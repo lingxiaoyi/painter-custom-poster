@@ -17,10 +17,10 @@ let optionArr = [
       text: '别跟我谈感情，谈感情伤钱。',
       width: 200,
       maxLines: 2, //最大行数
-      lineHeight: 1.3,//行间距
+      lineHeight: 1.3, //行间距
       left: 0,
       top: 250,
-      color: '#ff0000',
+      color: '#000000',
       background: 'rgba(0,0,0,0)',
       fontSize: 30,
       fontWeight: ['normal', 'bold'], //文字加粗 可以不写
@@ -45,7 +45,7 @@ let optionArr = [
       width: 200,
       height: 122, //高度,没有的话就自适应
       left: 452,
-      top:250,
+      top: 250,
       background: '#f8d4d4',
       rotate: 0,
       borderRadius: 0,
@@ -58,17 +58,18 @@ let optionArr = [
     type: 'image',
     name: '图片',
     css: {
-      url: 'https://operate.maiyariji.com/20190709%2F3da002983292a6950a71ca7392a21827.jpg',
-      mode: ['scaleToFill', 'aspectFill', 'auto'],
-      width: 200,
-      height: 100, //高度,没有的话就自适应
+      url:
+        'https://desk-fd.zol-img.com.cn/t_s960x600c5/g5/M00/0F/08/ChMkJlauzXWIDrXBAAdCg2xP7oYAAH9FQOpVAIAB0Kb342.jpg',
+      width: 320,
+      height: 200, //高度,没有的话就自适应
       left: 200,
       top: 400,
       rotate: 0,
       borderRadius: 0,
       borderWidth: 0,
       borderColor: '#000000',
-      shadow: '' //阴影
+      shadow: '', //阴影
+      mode: ['scaleToFill', 'aspectFill', 'auto']
     }
   },
   {
@@ -82,7 +83,7 @@ let optionArr = [
       color: '#000000', //字体颜色 linear-gradient(-135deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)
       background: '#ffffff', //文字区域背景色
       rotate: 0,
-      borderRadius: 10
+      borderRadius: 0
     }
   }
 ];
