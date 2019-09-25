@@ -65,7 +65,10 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    this.canvas_sprite = new fabric.Canvas('merge', this.state.currentOptionArr[0].css);
+    this.canvas_sprite = new fabric.Canvas('merge', {
+      ...this.state.currentOptionArr[0].css,
+      backgroundColor: this.state.currentOptionArr[0].css.background
+    });
     /* var font = new FontFaceObserver('webfont');
     font.load(); */
     //this.confirmImportCode();
@@ -1321,7 +1324,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                                     this.canvas_sprite.setWidth(event.target.value);
                                   } else if (item2 === 'height') {
                                     this.canvas_sprite.setHeight(event.target.value);
-                                  } else if (item2 === 'backgroundColor') {
+                                  } else if (item2 === 'background') {
                                     this.canvas_sprite.setBackgroundColor(event.target.value);
                                     this.canvas_sprite.renderAll();
                                   } else if (item2 === 'times') {

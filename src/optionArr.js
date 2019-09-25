@@ -6,7 +6,7 @@ let optionArr = [
     css: {
       width: '654',
       height: '1000',
-      backgroundColor: '#f8f8f8',
+      background: '#f8f8f8',
       times: '1'
     }
   },
