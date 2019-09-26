@@ -4,7 +4,7 @@ import _ from 'lodash';
 import jrQrcode from 'jr-qrcode';
 import { Button, Input, message, Select, Modal, Drawer, Radio } from 'antd';
 import copy from 'copy-to-clipboard';
-import keydown from 'react-keydown';
+import keydown, { ALL_KEYS } from 'react-keydown';
 import ReactMarkdown from 'react-markdown';
 import json from 'format-json';
 import { optionArr, newOptionArr } from './optionArr';
@@ -180,10 +180,13 @@ class App extends React.Component {
       that.updateCanvasState();
     });
   }
-  @keydown(['ctrl+left', 'ctrl+right', 'ctrl+up', 'ctrl+down', 'ctrl+z', 'ctrl+y', 'delete', '[', ']'])
+  @keydown(/* ['ctrl+left', 'ctrl+right', 'ctrl+up', 'ctrl+down', 'ctrl+z', 'ctrl+y', 'delete', '[', ']'] */ ALL_KEYS)
   beginEdit(event) {
+    //console.log('event', event, event.which);
     let that = this;
-    if (that.activeObject.type) {
+    let activeObject = this.canvas_sprite.getActiveObject();
+    //console.log('activeObject', activeObject);
+    if (activeObject) {
       //console.log('that.activeObject', that.activeObject);
       if (event.which === 37) {
         //左
@@ -225,17 +228,20 @@ class App extends React.Component {
         this.canvas_sprite.discardActiveObject();
         that.activeObject.sendBackwards(true);
         this.changeActiveObjectValue();
-      } else if (event.which === 90) {
+      } else if (event.which === 90 && event.ctrlKey) {
         //ctrl+z
         that.handerUndo();
         this.changeActiveObjectValue();
-      } else if (event.which === 89) {
+      } else if (event.which === 89 && event.ctrlKey) {
         //ctrl+y
         that.handerRedo();
         this.changeActiveObjectValue();
-      } else if (event.which === 46) {
-        //delete
-        this.canvas_sprite.remove(that.activeObject);
+      } else if (event.which === 46 || event.which === 8) {
+        //delete backspace
+        this.canvas_sprite.remove(activeObject);
+        that.setState({
+          visible: false
+        });
       }
       this.canvas_sprite.renderAll();
     }
