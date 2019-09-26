@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/painter-custom-poster/precache-manifest.ac8b8734e63a2412e0689651e9848ce3.js"
+  "/painter-custom-poster/precache-manifest.90f1b5760b2033f97c2201dbf8e2bad7.js"
 );
 
 workbox.clientsClaim();
