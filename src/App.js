@@ -941,7 +941,7 @@ class App extends React.Component {
         top: `${top - height / 2 + strokeWidth / 2}px`,
         left: `${left - width / 2 + strokeWidth / 2}px`,
         rotate: `${item2.angle}`,
-        borderRadius: `${item2.rx * item2.scaleY * times}px`,
+        borderRadius: `${item2.rx === 0 ? '' : item2.rx * item2.scaleY * times + 'px'}`,
         borderWidth: `${strokeWidth ? strokeWidth * item2.scaleY + 'px' : ''}`,
         borderColor: `${item2.stroke}`,
         //align: `${item2.align}`,
@@ -1075,6 +1075,10 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
     });
   }
   confirmImportCode() {
+    if (JSON.stringify(this.state.importCodeJson).indexOf('3.4.0') === -1) {
+      message.error(`请输入正确的json导出数据`, 2);
+      return;
+    }
     let canvas_sprite = this.canvas_sprite;
     //延时函数 解决setstate异步加载问题
     const delay = ms =>
@@ -1083,9 +1087,6 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         this.delayT = setTimeout(resolve, ms);
       });
     canvas_sprite.loadFromJSON(this.state.importCodeJson, async () => {
-      this.setState({
-        visibleImportCode: false
-      });
       let Objects = canvas_sprite.getObjects();
       for (let index = 0; index < Objects.length; index++) {
         const element = Objects[index];
@@ -1098,6 +1099,9 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         importCodeJson: ''
       });
       message.success(`画面加载成功`, 2);
+      this.setState({
+        visibleImportCode: false
+      });
     });
   }
   updateCanvasState() {
@@ -1511,6 +1515,7 @@ ${this.MarkdownCode}
         </Modal>
         <Modal
           title='导入代码'
+          getContainer={false}
           visible={visibleImportCode}
           onCancel={() => {
             this.setState({
