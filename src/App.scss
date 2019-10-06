@@ -110,6 +110,7 @@ input {
     .ul {
       display: flex;
       justify-content: space-around;
+      flex-wrap: wrap;
     }
     .li {
       width: 200px;

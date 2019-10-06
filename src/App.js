@@ -52,6 +52,7 @@ class App extends React.Component {
       redoButtonStatus: '',
       undoButtonStatus: '',
       currentOptionArr: _.cloneDeep(newOptionArr), //当前可设置的数组的值
+      optionArr: _.cloneDeep(newOptionArr), //当前可设置的数组的值
       currentObjectType: 'text', //当前要添加对象的类型
       importCodeJson: ''
     };
@@ -273,6 +274,9 @@ class App extends React.Component {
       visible: true
     });
     this.canvas_sprite.add(Shape);
+    if(action !=='update'){
+      this.changeActiveObjectValue()
+    }
   }
   async addTextObject(index, action) {
     let currentOptionArr;
@@ -409,7 +413,7 @@ class App extends React.Component {
       rx: borderRadius,
       strokeWidth: borderWidth / 1,
       stroke: borderColor,
-      fill: 'rgba(0,0,0,0)',
+      fill: background,
       shadow,
       selectable: false
     });
@@ -1293,7 +1297,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                   value={currentObjectType}
                   onChange={e => {
                     this.setState({ currentObjectType: e.target.value });
-                    this.currentOptionArr = _.cloneDeep(newOptionArr);
+                    //this.currentOptionArr = _.cloneDeep(newOptionArr);  //复原数据
                   }}
                 >
                   {optionArr.map((item, i) => {
@@ -1306,7 +1310,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                 </Radio.Group>
               </div>
             </div>
-            {optionArr.map((item, i) => {
+            {this.currentOptionArr.map((item, i) => {
               if (item.type === currentObjectType) {
                 return (
                   <div key={i} className='option-li'>
@@ -1327,6 +1331,7 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
                           {!_.isArray(item.css[item2]) && item2 !== 'text' && (
                             <Input
                               defaultValue={item.css[item2]}
+                              //value={item.css[item2]}
                               onChange={event => {
                                 this.currentOptionArr[i].css[item2] = event.target.value;
                                 if (item.type === 'canvas') {
