@@ -398,9 +398,9 @@ class App extends React.Component {
     let height = textBox.height / 1 + (textBox.lineHeight / 1 - 1) * textBox.fontSize + padding * 2;
     left = css.left - padding + borderWidth;
     top = css.top - padding + borderWidth;
-    /*  textBox.set({
-      top: top + height / 2
-    }); */
+    textBox.set({
+      top: -((textBox.lineHeight / 1 - 1) * textBox.fontSize) / 2
+    });
 
     let Rect = new fabric.Rect({
       width: width + borderWidth,
@@ -810,8 +810,10 @@ class App extends React.Component {
     let item2 = this.activeObject;
     let width = `${(item2.width - item2.strokeWidth) * item2.scaleX}`;
     let height = `${(item2.height - item2.strokeWidth) * item2.scaleY}`;
-    let left = `${(item2.left / item2.scaleY - (item2.width - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`;
-    let top = `${(item2.top / item2.scaleY - (item2.height - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`;
+    /* let left = `${(item2.left / item2.scaleY - (item2.width - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`;
+    let top = `${(item2.top / item2.scaleY - (item2.height - item2.strokeWidth) / 2 - item2.strokeWidth).toFixed(2)}`; */
+    let left = `${(item2.left - width / 2).toFixed(2)}`;
+    let top = `${(item2.top - height / 2).toFixed(2)}`;
     //console.log('item2.strokeWidth', `${item2.shadow}`, item2.scaleY);
     let css = {
       width,
