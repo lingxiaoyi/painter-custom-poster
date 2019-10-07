@@ -40,7 +40,7 @@ let optionArr = [
     type: 'rect',
     name: '矩形',
     css: {
-      //background: 'linear-gradient(280deg, #fedcba 0%, rgba(18, 52, 86, 1) 20%, #987 80%)',
+      //background: 'linear-gradient(190deg, rgba(243, 227, 223, 1) 20%, rgba(238, 214, 205, 1) 80%)',
       //background: 'radial-gradient(rgba(0, 0, 0, 0) 5%, #0ff 15%, #f0f 60%)',
       width: 200,
       height: 122, //高度,没有的话就自适应

@@ -274,8 +274,8 @@ class App extends React.Component {
       visible: true
     });
     this.canvas_sprite.add(Shape);
-    if(action !=='update'){
-      this.changeActiveObjectValue()
+    if (action !== 'update') {
+      this.changeActiveObjectValue();
     }
   }
   async addTextObject(index, action) {
@@ -1066,6 +1066,10 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
   exportCode() {
     let canvas_sprite = this.canvas_sprite;
     var jsonData = canvas_sprite.toJSON();
+    jsonData.canvas = {
+      width: canvas_sprite.getWidth(),
+      height: canvas_sprite.getHeight()
+    };
     var canvasAsJson = JSON.stringify(jsonData);
     if (copy(/* 'export default' +  */ canvasAsJson)) {
       message.success(`导出成功,请复制查看代码`, 2);
@@ -1090,6 +1094,17 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
         clearTimeout(this.delayT);
         this.delayT = setTimeout(resolve, ms);
       });
+    let importCodeJson;
+    if (typeof this.state.importCodeJson === 'string') {
+      importCodeJson = JSON.parse(this.state.importCodeJson);
+    } else {
+      importCodeJson = this.state.importCodeJson;
+    }
+    this.canvas_sprite.setWidth(importCodeJson.canvas ? importCodeJson.canvas.width : '654'); //默认值
+    this.canvas_sprite.setHeight(importCodeJson.canvas ? importCodeJson.canvas.height : '1000'); //默认值
+    this.currentOptionArr[0].css['width'] = importCodeJson.canvas ? importCodeJson.canvas.width : '654';
+    this.currentOptionArr[0].css['height'] = importCodeJson.canvas ? importCodeJson.canvas.height : '1000';
+    this.currentOptionArr[0].css['background'] = importCodeJson.background;
     canvas_sprite.loadFromJSON(this.state.importCodeJson, async () => {
       let Objects = canvas_sprite.getObjects();
       for (let index = 0; index < Objects.length; index++) {
@@ -1263,6 +1278,8 @@ ${json.plain(this.finallObj).replace(/px/g, 'px')}
             this.setState({
               visible: false
             });
+            this.canvas_sprite.discardActiveObject(); //取消激活对象
+            this.canvas_sprite.renderAll();
           }}
         >
           <div className='box'>
